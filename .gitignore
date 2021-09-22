@@ -1,0 +1,7 @@
+*.a
+*.o
+*.d
+*.log
+*.swp
+*.out
+tb
