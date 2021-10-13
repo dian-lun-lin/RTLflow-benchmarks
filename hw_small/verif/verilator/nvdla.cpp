@@ -1192,9 +1192,9 @@ int main(int argc, const char **argv, char **env) {
    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_in__DOT__beat_count) << "\n";
    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__core2wdma_vld)<< ", ";
    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_dpout_unpack__DOT__pack_cnt) << "\n";
-   std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__pipe_p4__DOT__p4_skid_ready_flop) << ", ";
-   std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__final_out_pvld) << ", ";
-   std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__pipe_p4__DOT__p4_skid_valid) << "\n ";
+   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__pipe_p4__DOT__p4_skid_ready_flop) << ", ";
+   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__final_out_pvld) << ", ";
+   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__pipe_p4__DOT__p4_skid_valid) << "\n ";
 		ticks++;
 #if VM_TRACE
 		tfp->dump(ticks);

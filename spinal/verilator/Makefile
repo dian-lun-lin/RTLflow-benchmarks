@@ -1,7 +1,6 @@
 
 
 SRC_FILE 			= ../spinal/ExampleTop.sim.v
-RF_VERILATOR_PREFIX	= /home/dian-lun/verilator_rtlflow
 VERILATOR_PREFIX	= /home/dian-lun/verilator
 
 all: tb
@@ -9,27 +8,26 @@ all: tb
 #============================================================
 # No tracing
 #============================================================
+      #./obj_dir_rtlflow/check.o \
 
 tb: verilator
-	nvcc -std=c++17 -O3 -I$(VERILATOR_PREFIX)/include/ -I$(RF_VERILATOR_PREFIX)/include/ --extended-lambda -DVL_THREADED=2 -I/home/dian-lun/taskflow/taskflow/ -I$(VERILATOR_PREFIX)/include/vltstd -I$(RF_VERILATOR_PREFIX)/include/vltstd -Iobj_dir_rtlflow \
+	g++ -std=c++17 -O2 -I$(VERILATOR_PREFIX)/include/ -DVL_THREADED=2 -I/home/dian-lun/taskflow/taskflow/ -I$(VERILATOR_PREFIX)/include/vltstd -Iobj_dir \
       $(VERILATOR_PREFIX)/include/verilated_threads.cpp \
-      ./verilator/VExampleTop__ALL.a \
-      ./obj_dir_rtlflow/VExampleTop__ALL.a \
-      ./obj_dir_rtlflow/check.o \
 			$(VERILATOR_PREFIX)/include/verilated.cpp \
-			$(RF_VERILATOR_PREFIX)/include/rf_verilated.cu \
-			 main.cu \
+			-lpthread \
+			 main.cpp \
+      ./obj_dir/VExampleTop__ALL.a \
 			-o tb
 
 .PHONY: verilator
 verilator: 
-	#rm -fr obj_dir_rtlflow
-	#verilator --threads 2 -CFLAGS "-O3" --Mdir obj_dir_rtlflow -Wno-fatal -cc  $(SRC_FILE)
-	cd obj_dir_rtlflow && make -f VExampleTop.mk
+	rm -fr obj_dir
+	verilator --threads 2 -CFLAGS "-O2" --Mdir obj_dir -Wno-fatal -cc  $(SRC_FILE)
+	cd obj_dir && make -f VExampleTop.mk
 	cp ../spinal/*.bin .
 
 clean:
-	\rm -fr *.bin obj_dir_rtlflow
+	\rm -fr *.bin obj_dir
 
 ##============================================================
 ## VCD

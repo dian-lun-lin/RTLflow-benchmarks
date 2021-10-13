@@ -22,12 +22,12 @@ VERILATOR_PARAMS ?= --compiler clang --output-split 250000000
 # We end up hardcoding this, because the .f file applies only to nv_full,
 # living in outdir, right now.  Otherwise, you're on your own...
 $(DEPTH)/outdir/$(PROJECT)/verilator/VNV_nvdla.mk: verilator_$(PROJECT).f ../../outdir/$(PROJECT)/vmod # and a lot of RTL...
-	$(VERILATOR) $(VERILATOR_PARAMS) --cc --threads 4 --stats --exe -f verilator_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/verilator/ nvdla.cpp --compiler clang --output-split 250000000
+	$(VERILATOR) $(VERILATOR_PARAMS) --cc --threads 8 --stats --exe -f verilator_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/verilator/ nvdla.cpp --compiler clang --output-split 250000000
 
 $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator/VNV_nvdla: $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator/VNV_nvdla.mk nvdla.cpp
 	rm -f $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator/nvdla.cpp
 	cp nvdla.cpp $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator/nvdla.cpp
-	make -C $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator -f VNV_nvdla.mk CC=gcc CXX=g++ $(VMAKE_PARAMS)
+	make VM_PARALLEL_BUILDS=1 -j8 -C $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator -f VNV_nvdla.mk CC=gcc CXX=g++ $(VMAKE_PARAMS)
 
 $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator/test/%/trace.bin: $(DEPTH)/verif/tests/trace_tests/$(PROJECT)/$(TEST)/ new_trace_to_verilator.py
 	rm -rf $@

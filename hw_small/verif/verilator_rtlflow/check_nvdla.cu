@@ -959,6 +959,14 @@ int main(int argc, const char **argv, char **env) {
 	RF::VNV_nvdla *rf_dla = new RF::VNV_nvdla;
 	VNV_nvdla *dla = new VNV_nvdla;
 
+  check1(dla);
+  //check2(dla);
+  //check3(dla);
+  //check4(dla);
+  //check5(dla);
+  //check6(dla);
+  //check7(dla);
+  //check8(dla);
   std::vector<TraceLoader*> rf_trace(NUM_TESTBENCHES, nullptr);
   std::vector<CSBMaster*> rf_csb(NUM_TESTBENCHES, nullptr);
   std::vector<AXIResponder*> rf_axi_dbb(NUM_TESTBENCHES, nullptr);
@@ -1040,7 +1048,7 @@ int main(int argc, const char **argv, char **env) {
   CSBMaster* csb = new CSBMaster(dla);
 
   TraceLoader* trace = new TraceLoader(csb, axi_dbb, axi_cvsram);
-  // ========================================================== 
+   //========================================================== 
     
 
   for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
@@ -1146,25 +1154,25 @@ int main(int argc, const char **argv, char **env) {
     trace->load(argv[t + 1]);
   }
 
-	printf("reset...\n");
+  printf("reset...\n");
   for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
     dla->dla_reset_rstn = 1;
     dla->direct_reset_ = 1;
     *(rtlflow.get(rf_dla->dla_reset_rstn, t)) = 1;
     *(rtlflow.get(rf_dla->direct_reset_, t)) = 1;
   }
-	rf_dla->eval();
-	dla->eval();
+  rf_dla->eval();
+  dla->eval();
 
-	for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < 20; i++) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
       dla->dla_core_clk = 1;
       dla->dla_csb_clk = 1;
     }
-		rf_dla->eval();
-		dla->eval();
+    rf_dla->eval();
+    dla->eval();
 		ticks++;
 //#if VM_TRACE
 		//tfp->dump(ticks);
@@ -1176,8 +1184,8 @@ int main(int argc, const char **argv, char **env) {
       dla->dla_core_clk = 0;
       dla->dla_csb_clk = 0;
     }
-		rf_dla->eval();
-		dla->eval();
+    rf_dla->eval();
+    dla->eval();
 		ticks++;
 //#if VM_TRACE
 		//tfp->dump(ticks);
@@ -1190,19 +1198,19 @@ int main(int argc, const char **argv, char **env) {
     dla->dla_reset_rstn = 0;
     dla->direct_reset_ = 0;
   }
-	rf_dla->eval();
+  rf_dla->eval();
   dla->eval();
-	
-	for (int i = 0; i < 20; i++) {
+  
+  for (int i = 0; i < 20; i++) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
       dla->dla_core_clk = 1;
       dla->dla_csb_clk = 1;
     }
-		rf_dla->eval();
+    rf_dla->eval();
   dla->eval();
-		ticks++;
+    ticks++;
 //#if VM_TRACE
 		//tfp->dump(ticks);
 //#endif
@@ -1213,7 +1221,7 @@ int main(int argc, const char **argv, char **env) {
       dla->dla_core_clk = 0;
       dla->dla_csb_clk = 0;
     }
-		rf_dla->eval();
+    rf_dla->eval();
   dla->eval();
 		ticks++;
 //#if VM_TRACE
@@ -1227,7 +1235,7 @@ int main(int argc, const char **argv, char **env) {
     dla->dla_reset_rstn = 1;
     dla->direct_reset_ = 1;
   }
-	
+  
   printf("letting buffers clear after reset...\n");
   for (int i = 0; i < 8192; i++) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
@@ -1257,15 +1265,8 @@ int main(int argc, const char **argv, char **env) {
 //#endif
   }
   check1(dla);
-  check2(dla);
-  check3(dla);
-  check4(dla);
-  check5(dla);
-  check6(dla);
-  check7(dla);
-  check8(dla);
-  std::cerr << (int)rtlflow._qsignals[NUM_TESTBENCHES * 724] << "\n";
-  std::cerr << ((dla->__VlSymsp)->TOP__NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_rdma__DOT__u_nrdma__DOT__u_eg__DOT__u_mul.__PVT__u_rod3__DOT__skid_flop_rod_wr_pd) << "\n";
+  //std::cerr << (int)rtlflow._qsignals[NUM_TESTBENCHES * 724] << "\n";
+  //std::cerr << ((dla->__VlSymsp)->TOP__NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_rdma__DOT__u_nrdma__DOT__u_eg__DOT__u_mul.__PVT__u_rod3__DOT__skid_flop_rod_wr_pd) << "\n";
 
 	printf("running trace...\n");
 	uint32_t quiesc_timer = 200;
@@ -1273,101 +1274,96 @@ int main(int argc, const char **argv, char **env) {
 	int waiting = 0;
 
   bool alldone{false};
-  //while (!alldone || (quiesc_timer--)) {
-  //while (!csb->done() || (quiesc_timer--)) {
-  //while (quiesc_timer--)) {
-    //alldone = true;
-    //for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
-      //int rf_extevent;
-      //int extevent;
+  while (!alldone || (quiesc_timer--)) {
+    alldone = true;
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      int rf_extevent;
+      int extevent;
 
-      //rf_extevent = rf_csb[t]->rf_eval(rf_waiting);
-      //rtlflow.change[t] = !rf_csb[t]->done();
-      //alldone &= rf_csb[t]->done();
+      rf_extevent = rf_csb[t]->rf_eval(rf_waiting);
 
-      //extevent = csb->eval(waiting);
+      extevent = csb->eval(waiting);
 
-      //if (rf_extevent == TraceLoader::TRACE_AXIEVENT)
-        //rf_trace[t]->axievent();
-      //else if (rf_extevent == TraceLoader::TRACE_WFI) {
-        //rf_waiting = 1;
-        //printf("(%lu) waiting for interrupt...\n", ticks);
-      //} else if (rf_extevent & TraceLoader::TRACE_SYNCPT_MASK) {
-        //rf_trace[t]->syncpt(rf_extevent);
-      //}
+      if (rf_extevent == TraceLoader::TRACE_AXIEVENT)
+        rf_trace[t]->axievent();
+      else if (rf_extevent == TraceLoader::TRACE_WFI) {
+        rf_waiting = 1;
+        printf("(%lu) waiting for interrupt...\n", ticks);
+      } else if (rf_extevent & TraceLoader::TRACE_SYNCPT_MASK) {
+        rf_trace[t]->syncpt(rf_extevent);
+      }
 
-      //if (extevent == TraceLoader::TRACE_AXIEVENT)
-        //trace->axievent();
-      //else if (extevent == TraceLoader::TRACE_WFI) {
-        //waiting = 1;
-        //printf("(%lu) waiting for interrupt...\n", ticks);
-      //} else if (extevent & TraceLoader::TRACE_SYNCPT_MASK) {
-        //trace->syncpt(extevent);
-      //}
+      if (extevent == TraceLoader::TRACE_AXIEVENT)
+        trace->axievent();
+      else if (extevent == TraceLoader::TRACE_WFI) {
+        waiting = 1;
+        printf("(%lu) waiting for interrupt...\n", ticks);
+      } else if (extevent & TraceLoader::TRACE_SYNCPT_MASK) {
+        trace->syncpt(extevent);
+      }
       
-      //if (rf_waiting && *(rtlflow.get(rf_dla->dla_intr, t))) {
-        //printf("(%lu) interrupt!\n", ticks);
-        //rf_waiting = 0;
-      //}
+      if (rf_waiting && *(rtlflow.get(rf_dla->dla_intr, t))) {
+        printf("(%lu) interrupt!\n", ticks);
+        rf_waiting = 0;
+      }
 
-      //if (waiting && dla->dla_intr) {
-        //printf("(%lu) interrupt!\n", ticks);
-        //waiting = 0;
-      //}
+      if (waiting && dla->dla_intr) {
+        printf("(%lu) interrupt!\n", ticks);
+        waiting = 0;
+      }
 
-      //rf_axi_dbb[t]->eval();
-      //axi_dbb->eval();
+      rf_axi_dbb[t]->eval();
+      axi_dbb->eval();
 
-      //if (rf_axi_cvsram[t] != nullptr)
-        //rf_axi_cvsram[t]->eval();
-      //if (axi_cvsram != nullptr)
-        //axi_cvsram->eval();
+      if (rf_axi_cvsram[t] != nullptr)
+        rf_axi_cvsram[t]->eval();
+      if (axi_cvsram != nullptr)
+        axi_cvsram->eval();
 
-      //*(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
-      //*(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
-      //dla->dla_core_clk = 1;
-      //dla->dla_csb_clk = 1;
-    //}
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
+      dla->dla_core_clk = 1;
+      dla->dla_csb_clk = 1;
+    }
 
-		//rf_dla->eval();
-		//dla->eval();
-		//ticks++;
+    rf_dla->eval();
+    dla->eval();
+    ticks++;
 
-    //for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
-      //*(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
-      //*(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
-      //dla->dla_core_clk = 0;
-      //dla->dla_csb_clk = 0;
-    //}
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
+      dla->dla_core_clk = 0;
+      dla->dla_csb_clk = 0;
+    }
 
-		//rf_dla->eval();
-		//dla->eval();
-		//ticks++;
+    rf_dla->eval();
+    dla->eval();
+    ticks++;
 
-    //check1(dla);
-      ////std::cout<<  rtlflow._csignals[NUM_TESTBENCHES * 3831] << "\n";
-           ////& ((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3719])
-               ////? (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])
-               ////: (((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3902]) 
-                   ////& (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])) 
-                  ////& (~ (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3901])))));
-  //}
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      rtlflow.done[t] = rf_csb[t]->done();
+      alldone &= rf_csb[t]->done();
+    }
+    //assert(alldone == csb->done());
+  check1(dla);
+  }
 
-  //printf("done at %lu ticks\n", ticks);
+  printf("done at %lu ticks\n", ticks);
 
-  //for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
-    //if (!rf_trace[t]->test_passed()) {
-      //printf("*** FAIL: test failed due to output mismatch\n");
-      ////return 1;
-    //}
+  for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+    if (!rf_trace[t]->test_passed()) {
+      printf("*** FAIL: test failed due to output mismatch\n");
+      return 1;
+    }
     
-    //if (!rf_csb[t]->test_passed()) {
-      //printf("*** FAIL: test failed due to CSB read mismatch\n");
-      ////return 2;
-    //}
+    if (!rf_csb[t]->test_passed()) {
+      printf("*** FAIL: test failed due to CSB read mismatch\n");
+      return 2;
+    }
 
-    ////printf("*** PASS\n");
-  //}
-	
-	return 0;
+    printf("*** PASS\n");
+  }
+  
+  return 0;
 }
