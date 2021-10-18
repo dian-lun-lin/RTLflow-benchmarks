@@ -1,8 +1,8 @@
 
 
 SRC_FILE 			= ../spinal/ExampleTop.sim.v
-RF_VERILATOR_PREFIX	= /home/dian-lun/verilator_rtlflow
-VERILATOR_PREFIX	= /home/dian-lun/verilator
+RF_VERILATOR_PREFIX	= /home/scratch.dianlunl_nvresearch/github/verilator_rtlflow
+#VERILATOR_PREFIX	= /home/dian-lun/verilator
 
 all: tb
 
@@ -16,9 +16,9 @@ all: tb
       #./verilator/VExampleTop__ALL.a \
 
 tb: verilator
-	nvcc -arch=sm_75 -std=c++17 -O2 -DNUM_TESTBENCHES=$(NUM_TESTBENCHES) -I$(RF_VERILATOR_PREFIX)/include/ --extended-lambda -DVL_THREADED=2 -I/home/dian-lun/taskflow/taskflow/ -I$(RF_VERILATOR_PREFIX)/include/vltstd -Iobj_dir_rtlflow \
-      ./obj_dir_rtlflow/VExampleTop__ALL.a \
+	nvcc -arch=sm_80 -std=c++17 -O2 -DNUM_TESTBENCHES=$(NUM_TESTBENCHES) -I$(RF_VERILATOR_PREFIX)/include/ --extended-lambda -DVL_THREADED=2 -I/home/scratch.dianlunl_nvresearch/github/taskflow/taskflow/ -I$(RF_VERILATOR_PREFIX)/include/vltstd -Iobj_dir_rtlflow \
 			$(RF_VERILATOR_PREFIX)/include/rf_verilated.cu \
+      ./obj_dir_rtlflow/VExampleTop__ALL.a \
 			 main.cu \
 			-o tb
 
