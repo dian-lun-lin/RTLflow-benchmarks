@@ -9,13 +9,14 @@ all: tb
 #============================================================
 # No tracing
 #============================================================
+	#nvcc -arch=sm_75 -std=c++17 -O2 -DNUM_TESTBENCHES=$(NUM_TESTBENCHES) -I$(VERILATOR_PREFIX)/include/ -I$(RF_VERILATOR_PREFIX)/include/ --extended-lambda -DVL_THREADED=2 -I/home/dian-lun/taskflow/taskflow/ -I$(VERILATOR_PREFIX)/include/vltstd -I$(RF_VERILATOR_PREFIX)/include/vltstd -Iobj_dir_rtlflow \
       #./obj_dir_rtlflow/check.o \
+      #$(VERILATOR_PREFIX)/include/verilated_threads.cpp \
+			#$(VERILATOR_PREFIX)/include/verilated.cpp \
+      #./verilator/VExampleTop__ALL.a \
 
 tb: verilator
-	nvcc -std=c++17 -O2 -DNUM_TESTBENCHES=$(NUM_TESTBENCHES) -I$(VERILATOR_PREFIX)/include/ -I$(RF_VERILATOR_PREFIX)/include/ --extended-lambda -DVL_THREADED=2 -I/home/dian-lun/taskflow/taskflow/ -I$(VERILATOR_PREFIX)/include/vltstd -I$(RF_VERILATOR_PREFIX)/include/vltstd -Iobj_dir_rtlflow \
-      $(VERILATOR_PREFIX)/include/verilated_threads.cpp \
-			$(VERILATOR_PREFIX)/include/verilated.cpp \
-      ./verilator/VExampleTop__ALL.a \
+	nvcc -arch=sm_75 -std=c++17 -O2 -DNUM_TESTBENCHES=$(NUM_TESTBENCHES) -I$(RF_VERILATOR_PREFIX)/include/ --extended-lambda -DVL_THREADED=2 -I/home/dian-lun/taskflow/taskflow/ -I$(RF_VERILATOR_PREFIX)/include/vltstd -Iobj_dir_rtlflow \
       ./obj_dir_rtlflow/VExampleTop__ALL.a \
 			$(RF_VERILATOR_PREFIX)/include/rf_verilated.cu \
 			 main.cu \
