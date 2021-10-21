@@ -18,8 +18,8 @@
 #include "rf_verilated.h"
 
 #include "VNV_nvdla.h"
-#include "../verilator/VNV_nvdla.h"
-#include "../verilator/VNV_nvdla__Syms.h"
+//#include "../verilator/VNV_nvdla.h"
+//#include "../verilator/VNV_nvdla__Syms.h"
 
 #include "../spec/defs/project.h"
 
@@ -40,14 +40,14 @@ uint64_t ticks = 0;
 
 RF::RTLflow rtlflow(NUM_TESTBENCHES);
 RF::RTLflow& RF::VNV_nvdla::_rtlflow = rtlflow;
-void check1(VNV_nvdla* vlTOPp);
-void check2(VNV_nvdla* vlTOPp);
-void check3(VNV_nvdla* vlTOPp);
-void check4(VNV_nvdla* vlTOPp);
-void check5(VNV_nvdla* vlTOPp);
-void check6(VNV_nvdla* vlTOPp);
-void check7(VNV_nvdla* vlTOPp);
-void check8(VNV_nvdla* vlTOPp);
+//void check1(VNV_nvdla* vlTOPp);
+//void check2(VNV_nvdla* vlTOPp);
+//void check3(VNV_nvdla* vlTOPp);
+//void check4(VNV_nvdla* vlTOPp);
+//void check5(VNV_nvdla* vlTOPp);
+//void check6(VNV_nvdla* vlTOPp);
+//void check7(VNV_nvdla* vlTOPp);
+//void check8(VNV_nvdla* vlTOPp);
 
 double sc_time_stamp() {
 	return (double) ticks;
@@ -74,7 +74,7 @@ class CSBMaster {
 	std::queue<csb_op> opq;
 	
 	RF::VNV_nvdla *rf_dla;
-	VNV_nvdla *dla;
+	//VNV_nvdla *dla;
   size_t idx;
 	
 	int _test_passed;
@@ -99,12 +99,12 @@ public:
 		quiet = 0;
 	}
 
-	CSBMaster(VNV_nvdla *_dla):dla{_dla} {
+	//CSBMaster(VNV_nvdla *_dla):dla{_dla} {
 		
-		dla->csb2nvdla_valid = 0;
-		_test_passed = 1;
-		quiet = 0;
-	}
+		//dla->csb2nvdla_valid = 0;
+		//_test_passed = 1;
+		//quiet = 0;
+	//}
 
 	void read(uint32_t addr, uint32_t mask, uint32_t data, enum why why = FROM_TRACE) {
 		csb_op op;
@@ -231,96 +231,96 @@ public:
 		return 0;
 	}
 	
-	int eval(int noop) {
-		if (dla->nvdla2csb_wr_complete)
-			if (!quiet) printf("(%lu) write complete from CSB\n", ticks);
+	//int eval(int noop) {
+		//if (dla->nvdla2csb_wr_complete)
+			//if (!quiet) printf("(%lu) write complete from CSB\n", ticks);
 		
-    dla->csb2nvdla_valid = 0;
+    //dla->csb2nvdla_valid = 0;
 
-		if (opq.empty() && syncpts.empty())
-			return 0;
-		if (opq.empty() && !syncpts.empty()) {
-			/* Perhaps we need to synthesize some mask reads and interrupt reads? */
-			if (!quiet) printf("(%lu) CSB switching to interrupt polling\n", ticks);
-			quiet = 1;
-			read(intr_mask_reg, 0, 0, IS_MASK);
-			read(intr_status_reg, 0, 0, IS_STATUS);
-		}
+		//if (opq.empty() && syncpts.empty())
+			//return 0;
+		//if (opq.empty() && !syncpts.empty()) {
+			//[> Perhaps we need to synthesize some mask reads and interrupt reads? <]
+			//if (!quiet) printf("(%lu) CSB switching to interrupt polling\n", ticks);
+			//quiet = 1;
+			//read(intr_mask_reg, 0, 0, IS_MASK);
+			//read(intr_status_reg, 0, 0, IS_STATUS);
+		//}
 
-		csb_op &op = opq.front();
+		//csb_op &op = opq.front();
 		
-		if (op.is_ext && !noop) {
-			int ext = op.is_ext;
-			opq.pop();
+		//if (op.is_ext && !noop) {
+			//int ext = op.is_ext;
+			//opq.pop();
 			
-			return ext;
-		}
+			//return ext;
+		//}
 		
-		if (!op.write && op.reading && dla->nvdla2csb_valid) {
-			if (!quiet) printf("(%lu) read response from nvdla: %08x\n", ticks, dla->nvdla2csb_data);
+		//if (!op.write && op.reading && dla->nvdla2csb_valid) {
+			//if (!quiet) printf("(%lu) read response from nvdla: %08x\n", ticks, dla->nvdla2csb_data);
 			
-			if (op.why == IS_MASK) {
-				last_mask = dla->nvdla2csb_data;
-				opq.pop();
-			} else if (op.why == IS_STATUS) {
-				last_status = dla->nvdla2csb_data;
-				opq.pop();
+			//if (op.why == IS_MASK) {
+				//last_mask = dla->nvdla2csb_data;
+				//opq.pop();
+			//} else if (op.why == IS_STATUS) {
+				//last_status = dla->nvdla2csb_data;
+				//opq.pop();
 				
-				uint32_t status = ~last_mask & last_status;
-				for (std::map<uint32_t, uint32_t>::iterator it = syncpts.begin();
-				     it != syncpts.end(); it++) {
-					if ((status & it->second) != it->second)
-						continue;
+				//uint32_t status = ~last_mask & last_status;
+				//for (std::map<uint32_t, uint32_t>::iterator it = syncpts.begin();
+						 //it != syncpts.end(); it++) {
+					//if ((status & it->second) != it->second)
+						//continue;
 					
-					printf("(%lu) syncpt %08x\n", ticks, it->first);
-					write(intr_status_reg, it->second);
-					syncpts.erase(it);
+					//printf("(%lu) syncpt %08x\n", ticks, it->first);
+					//write(intr_status_reg, it->second);
+					//syncpts.erase(it);
 					
-					return it->first;
-				}
-			} else if ((dla->nvdla2csb_data & op.mask) != (op.data & op.mask)) {
-				op.reading = 0;
-				op.tries--;
-				if (!quiet) printf("(%lu) invalid response -- trying again\n", ticks);
-				if (!op.tries) {
-					if (!quiet) printf("(%lu) ERROR: timed out reading response\n", ticks);
-					_test_passed = 0;
-					opq.pop();
-				}
-			} else
-				opq.pop();
-		}
+					//return it->first;
+				//}
+			//} else if ((dla->nvdla2csb_data & op.mask) != (op.data & op.mask)) {
+				//op.reading = 0;
+				//op.tries--;
+				//if (!quiet) printf("(%lu) invalid response -- trying again\n", ticks);
+				//if (!op.tries) {
+					//if (!quiet) printf("(%lu) ERROR: timed out reading response\n", ticks);
+					//_test_passed = 0;
+					//opq.pop();
+				//}
+			//} else
+				//opq.pop();
+		//}
 		
-		if (!op.write && op.reading)
-			return 0;
+		//if (!op.write && op.reading)
+			//return 0;
 		
-		if (noop)
-			return 0;
+		//if (noop)
+			//return 0;
 		
-		if (!dla->csb2nvdla_ready) {
-			if (!quiet) printf("(%lu) CSB stalled...\n", ticks);
-			return 0;
-		}
+		//if (!dla->csb2nvdla_ready) {
+			//if (!quiet) printf("(%lu) CSB stalled...\n", ticks);
+			//return 0;
+		//}
 		
-		if (op.write) {
-			dla->csb2nvdla_valid = 1;
-			dla->csb2nvdla_addr = op.addr;
-			dla->csb2nvdla_wdat = op.data;
-			dla->csb2nvdla_write = 1;
-			dla->csb2nvdla_nposted = 0;
-			if (!quiet) printf("(%lu) write to nvdla: addr %08x, data %08x\n", ticks, op.addr, op.data);
-			opq.pop();
-		} else {
-			dla->csb2nvdla_valid = 1;
-			dla->csb2nvdla_addr = op.addr;
-			dla->csb2nvdla_write = 0;
-			if (!quiet) printf("(%lu) read from nvdla: addr %08x\n", ticks, op.addr);
+		//if (op.write) {
+			//dla->csb2nvdla_valid = 1;
+			//dla->csb2nvdla_addr = op.addr;
+			//dla->csb2nvdla_wdat = op.data;
+			//dla->csb2nvdla_write = 1;
+			//dla->csb2nvdla_nposted = 0;
+			//if (!quiet) printf("(%lu) write to nvdla: addr %08x, data %08x\n", ticks, op.addr, op.data);
+			//opq.pop();
+		//} else {
+			//dla->csb2nvdla_valid = 1;
+			//dla->csb2nvdla_addr = op.addr;
+			//dla->csb2nvdla_write = 0;
+			//if (!quiet) printf("(%lu) read from nvdla: addr %08x\n", ticks, op.addr);
 			
-			op.reading = 1;
-		}
+			//op.reading = 1;
+		//}
 		
-		return 0;
-	}
+		//return 0;
+	//}
 	
 	bool done() {
 		return opq.empty() && syncpts.empty();
@@ -957,89 +957,97 @@ public:
 
 int main(int argc, const char **argv, char **env) {
 	RF::VNV_nvdla *rf_dla = new RF::VNV_nvdla;
-	VNV_nvdla *dla = new VNV_nvdla;
+	//VNV_nvdla *dla = new VNV_nvdla;
 
+  //check1(dla);
+  //check2(dla);
+  //check3(dla);
+  //check4(dla);
+  //check5(dla);
+  //check6(dla);
+  //check7(dla);
+  //check8(dla);
   std::vector<TraceLoader*> rf_trace(NUM_TESTBENCHES, nullptr);
   std::vector<CSBMaster*> rf_csb(NUM_TESTBENCHES, nullptr);
   std::vector<AXIResponder*> rf_axi_dbb(NUM_TESTBENCHES, nullptr);
   std::vector<AXIResponder*> rf_axi_cvsram(NUM_TESTBENCHES, nullptr);
 
   RF::Verilated::commandArgs(argc, argv);
-  Verilated::commandArgs(argc, argv);
+  //Verilated::commandArgs(argc, argv);
   if (argc != (NUM_TESTBENCHES + 1)) {
     fprintf(stderr, "nvdla requires exactly NUM_TESTBENCHES parameters (trace files)\n");
     return 1;
   }
-  // Verilator ========================================================== 
-    AXIResponder::connections dbbconn = {
-      .aw_awvalid = &dla->nvdla_core2dbb_aw_awvalid,
-      .aw_awready = &dla->nvdla_core2dbb_aw_awready,
+  //// Verilator ========================================================== 
+    //AXIResponder::connections dbbconn = {
+      //.aw_awvalid = &dla->nvdla_core2dbb_aw_awvalid,
+      //.aw_awready = &dla->nvdla_core2dbb_aw_awready,
 
-      .aw_awid = &dla->nvdla_core2dbb_aw_awid,
-      .aw_awlen = &dla->nvdla_core2dbb_aw_awlen,
-      .aw_awaddr = &dla->nvdla_core2dbb_aw_awaddr,
+      //.aw_awid = &dla->nvdla_core2dbb_aw_awid,
+      //.aw_awlen = &dla->nvdla_core2dbb_aw_awlen,
+      //.aw_awaddr = &dla->nvdla_core2dbb_aw_awaddr,
       
-      .w_wvalid = &dla->nvdla_core2dbb_w_wvalid,
-      .w_wready = &dla->nvdla_core2dbb_w_wready,
-      .w_wdata = AXI_WDATA_MKPTR dla->nvdla_core2dbb_w_wdata,
-      .w_wstrb = &dla->nvdla_core2dbb_w_wstrb,
-      .w_wlast = &dla->nvdla_core2dbb_w_wlast,
+      //.w_wvalid = &dla->nvdla_core2dbb_w_wvalid,
+      //.w_wready = &dla->nvdla_core2dbb_w_wready,
+      //.w_wdata = AXI_WDATA_MKPTR dla->nvdla_core2dbb_w_wdata,
+      //.w_wstrb = &dla->nvdla_core2dbb_w_wstrb,
+      //.w_wlast = &dla->nvdla_core2dbb_w_wlast,
       
-      .b_bvalid = &dla->nvdla_core2dbb_b_bvalid,
-      .b_bready = &dla->nvdla_core2dbb_b_bready,
-      .b_bid = &dla->nvdla_core2dbb_b_bid,
+      //.b_bvalid = &dla->nvdla_core2dbb_b_bvalid,
+      //.b_bready = &dla->nvdla_core2dbb_b_bready,
+      //.b_bid = &dla->nvdla_core2dbb_b_bid,
 
-      .ar_arvalid = &dla->nvdla_core2dbb_ar_arvalid,
-      .ar_arready = &dla->nvdla_core2dbb_ar_arready,
-      .ar_arid = &dla->nvdla_core2dbb_ar_arid,
-      .ar_arlen = &dla->nvdla_core2dbb_ar_arlen,
-      .ar_araddr = &dla->nvdla_core2dbb_ar_araddr,
+      //.ar_arvalid = &dla->nvdla_core2dbb_ar_arvalid,
+      //.ar_arready = &dla->nvdla_core2dbb_ar_arready,
+      //.ar_arid = &dla->nvdla_core2dbb_ar_arid,
+      //.ar_arlen = &dla->nvdla_core2dbb_ar_arlen,
+      //.ar_araddr = &dla->nvdla_core2dbb_ar_araddr,
     
-      .r_rvalid = &dla->nvdla_core2dbb_r_rvalid,
-      .r_rready = &dla->nvdla_core2dbb_r_rready,
-      .r_rid = &dla->nvdla_core2dbb_r_rid,
-      .r_rlast = &dla->nvdla_core2dbb_r_rlast,
-      .r_rdata = AXI_WDATA_MKPTR dla->nvdla_core2dbb_r_rdata,
-    };
-    AXIResponder* axi_dbb = new AXIResponder(dbbconn, "DBB");
+      //.r_rvalid = &dla->nvdla_core2dbb_r_rvalid,
+      //.r_rready = &dla->nvdla_core2dbb_r_rready,
+      //.r_rid = &dla->nvdla_core2dbb_r_rid,
+      //.r_rlast = &dla->nvdla_core2dbb_r_rlast,
+      //.r_rdata = AXI_WDATA_MKPTR dla->nvdla_core2dbb_r_rdata,
+    //};
+    //AXIResponder* axi_dbb = new AXIResponder(dbbconn, "DBB");
 
-  #ifdef NVDLA_SECONDARY_MEMIF_ENABLE
-    AXIResponder::connections cvsramconn = {
-      .aw_awvalid = &dla->nvdla_core2cvsram_aw_awvalid,
-      .aw_awready = &dla->nvdla_core2cvsram_aw_awready,
-      .aw_awid = &dla->nvdla_core2cvsram_aw_awid,
-      .aw_awlen = &dla->nvdla_core2cvsram_aw_awlen,
-      .aw_awaddr = &dla->nvdla_core2cvsram_aw_awaddr,
+  //#ifdef NVDLA_SECONDARY_MEMIF_ENABLE
+    //AXIResponder::connections cvsramconn = {
+      //.aw_awvalid = &dla->nvdla_core2cvsram_aw_awvalid,
+      //.aw_awready = &dla->nvdla_core2cvsram_aw_awready,
+      //.aw_awid = &dla->nvdla_core2cvsram_aw_awid,
+      //.aw_awlen = &dla->nvdla_core2cvsram_aw_awlen,
+      //.aw_awaddr = &dla->nvdla_core2cvsram_aw_awaddr,
       
-      .w_wvalid = &dla->nvdla_core2cvsram_w_wvalid,
-      .w_wready = &dla->nvdla_core2cvsram_w_wready,
-      .w_wdata = dla->nvdla_core2cvsram_w_wdata,
-      .w_wstrb = &dla->nvdla_core2cvsram_w_wstrb,
-      .w_wlast = &dla->nvdla_core2cvsram_w_wlast,
+      //.w_wvalid = &dla->nvdla_core2cvsram_w_wvalid,
+      //.w_wready = &dla->nvdla_core2cvsram_w_wready,
+      //.w_wdata = dla->nvdla_core2cvsram_w_wdata,
+      //.w_wstrb = &dla->nvdla_core2cvsram_w_wstrb,
+      //.w_wlast = &dla->nvdla_core2cvsram_w_wlast,
       
-      .b_bvalid = &dla->nvdla_core2cvsram_b_bvalid,
-      .b_bready = &dla->nvdla_core2cvsram_b_bready,
-      .b_bid = &dla->nvdla_core2cvsram_b_bid,
+      //.b_bvalid = &dla->nvdla_core2cvsram_b_bvalid,
+      //.b_bready = &dla->nvdla_core2cvsram_b_bready,
+      //.b_bid = &dla->nvdla_core2cvsram_b_bid,
 
-      .ar_arvalid = &dla->nvdla_core2cvsram_ar_arvalid,
-      .ar_arready = &dla->nvdla_core2cvsram_ar_arready,
-      .ar_arid = &dla->nvdla_core2cvsram_ar_arid,
-      .ar_arlen = &dla->nvdla_core2cvsram_ar_arlen,
-      .ar_araddr = &dla->nvdla_core2cvsram_ar_araddr,
+      //.ar_arvalid = &dla->nvdla_core2cvsram_ar_arvalid,
+      //.ar_arready = &dla->nvdla_core2cvsram_ar_arready,
+      //.ar_arid = &dla->nvdla_core2cvsram_ar_arid,
+      //.ar_arlen = &dla->nvdla_core2cvsram_ar_arlen,
+      //.ar_araddr = &dla->nvdla_core2cvsram_ar_araddr,
     
-      .r_rvalid = &dla->nvdla_core2cvsram_r_rvalid,
-      .r_rready = &dla->nvdla_core2cvsram_r_rready,
-      .r_rid = &dla->nvdla_core2cvsram_r_rid,
-      .r_rlast = &dla->nvdla_core2cvsram_r_rlast,
-      .r_rdata = dla->nvdla_core2cvsram_r_rdata,
-    };
-    AXIResponder* axi_cvsram = new AXIResponder(cvsramconn, "CVSRAM");
-  #else
-    AXIResponder* axi_cvsram = nullptr;
-  #endif
-  CSBMaster* csb = new CSBMaster(dla);
+      //.r_rvalid = &dla->nvdla_core2cvsram_r_rvalid,
+      //.r_rready = &dla->nvdla_core2cvsram_r_rready,
+      //.r_rid = &dla->nvdla_core2cvsram_r_rid,
+      //.r_rlast = &dla->nvdla_core2cvsram_r_rlast,
+      //.r_rdata = dla->nvdla_core2cvsram_r_rdata,
+    //};
+    //AXIResponder* axi_cvsram = new AXIResponder(cvsramconn, "CVSRAM");
+  //#else
+    //AXIResponder* axi_cvsram = nullptr;
+  //#endif
+  //CSBMaster* csb = new CSBMaster(dla);
 
-  TraceLoader* trace = new TraceLoader(csb, axi_dbb, axi_cvsram);
+  //TraceLoader* trace = new TraceLoader(csb, axi_dbb, axi_cvsram);
   // ========================================================== 
     
 
@@ -1122,15 +1130,15 @@ int main(int argc, const char **argv, char **env) {
 	//tfp->open("trace.vcd");
 	//atexit(_close_trace);
 //#endif
-    dla->global_clk_ovr_on = 0;
-    dla->tmc2slcg_disable_clock_gating = 0;
-    dla->test_mode = 0;
-    dla->nvdla_pwrbus_ram_c_pd = 0;
-    dla->nvdla_pwrbus_ram_ma_pd = 0;
-    dla->nvdla_pwrbus_ram_mb_pd = 0;
-    dla->nvdla_pwrbus_ram_p_pd = 0;
-    dla->nvdla_pwrbus_ram_o_pd = 0;
-    dla->nvdla_pwrbus_ram_a_pd = 0;
+    //dla->global_clk_ovr_on = 0;
+    //dla->tmc2slcg_disable_clock_gating = 0;
+    //dla->test_mode = 0;
+    //dla->nvdla_pwrbus_ram_c_pd = 0;
+    //dla->nvdla_pwrbus_ram_ma_pd = 0;
+    //dla->nvdla_pwrbus_ram_mb_pd = 0;
+    //dla->nvdla_pwrbus_ram_p_pd = 0;
+    //dla->nvdla_pwrbus_ram_o_pd = 0;
+    //dla->nvdla_pwrbus_ram_a_pd = 0;
 	
     *(rtlflow.get(rf_dla->global_clk_ovr_on, t)) = 0;
     *(rtlflow.get(rf_dla->tmc2slcg_disable_clock_gating, t)) = 0;
@@ -1143,28 +1151,28 @@ int main(int argc, const char **argv, char **env) {
     *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_a_pd, t)) = 0;
 
     rf_trace[t]->load(argv[t + 1]);
-    trace->load(argv[t + 1]);
+    //trace->load(argv[t + 1]);
   }
 
 	printf("reset...\n");
   for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
-    dla->dla_reset_rstn = 1;
-    dla->direct_reset_ = 1;
+    //dla->dla_reset_rstn = 1;
+    //dla->direct_reset_ = 1;
     *(rtlflow.get(rf_dla->dla_reset_rstn, t)) = 1;
     *(rtlflow.get(rf_dla->direct_reset_, t)) = 1;
   }
 	rf_dla->eval();
-	dla->eval();
+	//dla->eval();
 
 	for (int i = 0; i < 20; i++) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
-      dla->dla_core_clk = 1;
-      dla->dla_csb_clk = 1;
+      //dla->dla_core_clk = 1;
+      //dla->dla_csb_clk = 1;
     }
 		rf_dla->eval();
-		dla->eval();
+		//dla->eval();
 		ticks++;
 //#if VM_TRACE
 		//tfp->dump(ticks);
@@ -1173,11 +1181,11 @@ int main(int argc, const char **argv, char **env) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
-      dla->dla_core_clk = 0;
-      dla->dla_csb_clk = 0;
+      //dla->dla_core_clk = 0;
+      //dla->dla_csb_clk = 0;
     }
 		rf_dla->eval();
-		dla->eval();
+		//dla->eval();
 		ticks++;
 //#if VM_TRACE
 		//tfp->dump(ticks);
@@ -1187,21 +1195,21 @@ int main(int argc, const char **argv, char **env) {
   for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
     *(rtlflow.get(rf_dla->dla_reset_rstn, t)) = 0;
     *(rtlflow.get(rf_dla->direct_reset_, t)) = 0;
-    dla->dla_reset_rstn = 0;
-    dla->direct_reset_ = 0;
+    //dla->dla_reset_rstn = 0;
+    //dla->direct_reset_ = 0;
   }
 	rf_dla->eval();
-  dla->eval();
+  //dla->eval();
 	
 	for (int i = 0; i < 20; i++) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
-      dla->dla_core_clk = 1;
-      dla->dla_csb_clk = 1;
+      //dla->dla_core_clk = 1;
+      //dla->dla_csb_clk = 1;
     }
 		rf_dla->eval();
-  dla->eval();
+  //dla->eval();
 		ticks++;
 //#if VM_TRACE
 		//tfp->dump(ticks);
@@ -1210,11 +1218,11 @@ int main(int argc, const char **argv, char **env) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
-      dla->dla_core_clk = 0;
-      dla->dla_csb_clk = 0;
+      //dla->dla_core_clk = 0;
+      //dla->dla_csb_clk = 0;
     }
 		rf_dla->eval();
-  dla->eval();
+  //dla->eval();
 		ticks++;
 //#if VM_TRACE
 		//tfp->dump(ticks);
@@ -1224,8 +1232,8 @@ int main(int argc, const char **argv, char **env) {
   for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
     *(rtlflow.get(rf_dla->dla_reset_rstn, t)) = 1;
     *(rtlflow.get(rf_dla->direct_reset_, t)) = 1;
-    dla->dla_reset_rstn = 1;
-    dla->direct_reset_ = 1;
+    //dla->dla_reset_rstn = 1;
+    //dla->direct_reset_ = 1;
   }
 	
   printf("letting buffers clear after reset...\n");
@@ -1233,11 +1241,11 @@ int main(int argc, const char **argv, char **env) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
-      dla->dla_core_clk = 1;
-      dla->dla_csb_clk = 1;
+      //dla->dla_core_clk = 1;
+      //dla->dla_csb_clk = 1;
     }
     rf_dla->eval();
-  dla->eval();
+  //dla->eval();
     ticks++;
 //#if VM_TRACE
     //tfp->dump(ticks);
@@ -1246,26 +1254,18 @@ int main(int argc, const char **argv, char **env) {
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
-      dla->dla_core_clk = 0;
-      dla->dla_csb_clk = 0;
+      //dla->dla_core_clk = 0;
+      //dla->dla_csb_clk = 0;
     }
     rf_dla->eval();
-  dla->eval();
+  //dla->eval();
     ticks++;
 //#if VM_TRACE
     //tfp->dump(ticks);
 //#endif
   }
-  check1(dla);
-  check2(dla);
-  check3(dla);
-  check4(dla);
-  check5(dla);
-  check6(dla);
-  check7(dla);
-  check8(dla);
-  std::cerr << (int)rtlflow._qsignals[NUM_TESTBENCHES * 724] << "\n";
-  std::cerr << ((dla->__VlSymsp)->TOP__NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_rdma__DOT__u_nrdma__DOT__u_eg__DOT__u_mul.__PVT__u_rod3__DOT__skid_flop_rod_wr_pd) << "\n";
+  //std::cerr << (int)rtlflow._qsignals[NUM_TESTBENCHES * 724] << "\n";
+  //std::cerr << ((dla->__VlSymsp)->TOP__NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_rdma__DOT__u_nrdma__DOT__u_eg__DOT__u_mul.__PVT__u_rod3__DOT__skid_flop_rod_wr_pd) << "\n";
 
 	printf("running trace...\n");
 	uint32_t quiesc_timer = 200;
@@ -1273,28 +1273,28 @@ int main(int argc, const char **argv, char **env) {
 	int waiting = 0;
 
   bool alldone{false};
-  //while (!alldone || (quiesc_timer--)) {
+  while (!alldone || (quiesc_timer--)) {
   //while (!csb->done() || (quiesc_timer--)) {
   //while (quiesc_timer--)) {
-    //alldone = true;
-    //for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
-      //int rf_extevent;
-      //int extevent;
+    alldone = true;
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      int rf_extevent;
+      int extevent;
 
-      //rf_extevent = rf_csb[t]->rf_eval(rf_waiting);
-      //rtlflow.change[t] = !rf_csb[t]->done();
-      //alldone &= rf_csb[t]->done();
+      rf_extevent = rf_csb[t]->rf_eval(rf_waiting);
+      rtlflow.change[t] = !rf_csb[t]->done();
+      alldone &= rf_csb[t]->done();
 
       //extevent = csb->eval(waiting);
 
-      //if (rf_extevent == TraceLoader::TRACE_AXIEVENT)
-        //rf_trace[t]->axievent();
-      //else if (rf_extevent == TraceLoader::TRACE_WFI) {
-        //rf_waiting = 1;
-        //printf("(%lu) waiting for interrupt...\n", ticks);
-      //} else if (rf_extevent & TraceLoader::TRACE_SYNCPT_MASK) {
-        //rf_trace[t]->syncpt(rf_extevent);
-      //}
+      if (rf_extevent == TraceLoader::TRACE_AXIEVENT)
+        rf_trace[t]->axievent();
+      else if (rf_extevent == TraceLoader::TRACE_WFI) {
+        rf_waiting = 1;
+        printf("(%lu) waiting for interrupt...\n", ticks);
+      } else if (rf_extevent & TraceLoader::TRACE_SYNCPT_MASK) {
+        rf_trace[t]->syncpt(rf_extevent);
+      }
 
       //if (extevent == TraceLoader::TRACE_AXIEVENT)
         //trace->axievent();
@@ -1305,69 +1305,69 @@ int main(int argc, const char **argv, char **env) {
         //trace->syncpt(extevent);
       //}
       
-      //if (rf_waiting && *(rtlflow.get(rf_dla->dla_intr, t))) {
-        //printf("(%lu) interrupt!\n", ticks);
-        //rf_waiting = 0;
-      //}
+      if (rf_waiting && *(rtlflow.get(rf_dla->dla_intr, t))) {
+        printf("(%lu) interrupt!\n", ticks);
+        rf_waiting = 0;
+      }
 
       //if (waiting && dla->dla_intr) {
         //printf("(%lu) interrupt!\n", ticks);
         //waiting = 0;
       //}
 
-      //rf_axi_dbb[t]->eval();
+      rf_axi_dbb[t]->eval();
       //axi_dbb->eval();
 
-      //if (rf_axi_cvsram[t] != nullptr)
-        //rf_axi_cvsram[t]->eval();
+      if (rf_axi_cvsram[t] != nullptr)
+        rf_axi_cvsram[t]->eval();
       //if (axi_cvsram != nullptr)
         //axi_cvsram->eval();
 
-      //*(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
-      //*(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
       //dla->dla_core_clk = 1;
       //dla->dla_csb_clk = 1;
-    //}
+    }
 
-		//rf_dla->eval();
-		//dla->eval();
-		//ticks++;
+    rf_dla->eval();
+    //dla->eval();
+    ticks++;
 
-    //for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
-      //*(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
-      //*(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
       //dla->dla_core_clk = 0;
       //dla->dla_csb_clk = 0;
-    //}
+    }
 
-		//rf_dla->eval();
-		//dla->eval();
-		//ticks++;
+    rf_dla->eval();
+    //dla->eval();
+    ticks++;
 
     //check1(dla);
-      ////std::cout<<  rtlflow._csignals[NUM_TESTBENCHES * 3831] << "\n";
-           ////& ((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3719])
-               ////? (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])
-               ////: (((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3902]) 
-                   ////& (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])) 
-                  ////& (~ (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3901])))));
-  //}
+      //std::cout<<  rtlflow._csignals[NUM_TESTBENCHES * 3831] << "\n";
+           //& ((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3719])
+               //? (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])
+               //: (((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3902]) 
+                   //& (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])) 
+                  //& (~ (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3901])))));
+  }
 
-  //printf("done at %lu ticks\n", ticks);
+  printf("done at %lu ticks\n", ticks);
 
-  //for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
-    //if (!rf_trace[t]->test_passed()) {
-      //printf("*** FAIL: test failed due to output mismatch\n");
-      ////return 1;
-    //}
+  for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+    if (!rf_trace[t]->test_passed()) {
+      printf("*** FAIL: test failed due to output mismatch\n");
+      //return 1;
+    }
     
-    //if (!rf_csb[t]->test_passed()) {
-      //printf("*** FAIL: test failed due to CSB read mismatch\n");
-      ////return 2;
-    //}
+    if (!rf_csb[t]->test_passed()) {
+      printf("*** FAIL: test failed due to CSB read mismatch\n");
+      //return 2;
+    }
 
-    ////printf("*** PASS\n");
-  //}
-	
-	return 0;
+    //printf("*** PASS\n");
+  }
+  
+  return 0;
 }
