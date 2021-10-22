@@ -8,6 +8,7 @@
 
 DEPTH = ../..
 include $(DEPTH)/tools/make/common.make
+VERILATOR=~/verilator/bin/verilator
 
 default: $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator/VNV_nvdla
 
