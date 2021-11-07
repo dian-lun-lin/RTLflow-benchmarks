@@ -1,0 +1,4 @@
+dc_8x8x36_4x4x36x16_dilation_int8_0
+cdp_8x8x64_lrn3_int8_9
+pdp_8x8x64_2x2_min_int8_0
+pdp_8x9x19_3x3_ave_int8_0

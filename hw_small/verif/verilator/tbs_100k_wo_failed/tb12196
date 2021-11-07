@@ -1,0 +1,5 @@
+cdp_8x8x32_lrn7_int8_0
+dc_1x1x8_1x1x8x1_int8_0
+cdp_1x1x1_lrn3_int8_0
+cdp_1x1x1_lrn3_int8_0
+pdp_1x3x8_8x8_ave_int8_0
