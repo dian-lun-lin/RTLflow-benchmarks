@@ -32,7 +32,7 @@ cd ./$dir
 
 
 
-for ((k=1; k<=times; ++k)); do
+for ((k=4097; k<=times; ++k)); do
   cur_ticks=0
   diff=$target_ticks
   collect_files=()
@@ -50,18 +50,15 @@ for ((k=1; k<=times; ++k)); do
 
   # generate files
   if [ ! -e tb$k ]; then
-    mkdir tb$k
+    touch tb$k
   else
-    rm -r tb$k
-    mkdir tb$k
+    rm tb$k
+    touch tb$k
   fi
 
-  cd ./tb$k
-
   for cf in ${collect_files[@]}; do
-    cp -r ../../traces/$cf ./
+    echo $cf >> tb$k
   done
-  cd ../
 
 done
 
