@@ -1,7 +1,5 @@
 
-
 SRC_FILE 			= ../spinal/ExampleTop.sim.v
-VERILATOR_PREFIX	= /home/dian-lun/verilator
 
 all: tb
 
@@ -11,9 +9,9 @@ all: tb
       #./obj_dir_rtlflow/check.o \
 
 tb: verilator
-	g++ -std=c++17 -O2 -I$(VERILATOR_PREFIX)/include/ -DVL_THREADED=2 -I/home/dian-lun/taskflow/taskflow/ -I$(VERILATOR_PREFIX)/include/vltstd -Iobj_dir \
-      $(VERILATOR_PREFIX)/include/verilated_threads.cpp \
-			$(VERILATOR_PREFIX)/include/verilated.cpp \
+	g++ -std=c++17 -O2 -I$(VERILATOR_ROOT)/include/ -DVL_THREADED=2 -I../../taskflow/ -I$(VERILATOR_ROOT)/include/vltstd -Iobj_dir \
+      $(VERILATOR_ROOT)/include/verilated_threads.cpp \
+			$(VERILATOR_ROOT)/include/verilated.cpp \
 			-lpthread \
 			 main.cpp \
       ./obj_dir/VExampleTop__ALL.a \
@@ -27,17 +25,17 @@ verilator:
 	cp ../spinal/*.bin .
 
 clean:
-	\rm -fr *.bin obj_dir
+	rm -fr *.bin obj_dir
 
 ##============================================================
 ## VCD
 ##============================================================
 
 #tb_vcd: verilator_vcd
-	#clang++-9 -std=c++14 -g -O3 -DTRACE_VCD -I$(VERILATOR_PREFIX)/share/verilator/include/ -I$(VERILATOR_PREFIX)/share/verilator/include/vltstd -Iobj_dir_vcd \
+	#clang++-9 -std=c++14 -g -O3 -DTRACE_VCD -I$(VERILATOR_ROOT)/share/verilator/include/ -I$(VERILATOR_ROOT)/share/verilator/include/vltstd -Iobj_dir_vcd \
 			 #main.cpp \
-			#$(VERILATOR_PREFIX)/share/verilator/include/verilated.cpp \
-			#$(VERILATOR_PREFIX)/share/verilator/include/verilated_vcd_c.cpp \
+			#$(VERILATOR_ROOT)/share/verilator/include/verilated.cpp \
+			#$(VERILATOR_ROOT)/share/verilator/include/verilated_vcd_c.cpp \
 			#./obj_dir_vcd/Vtb__ALL.a -o tb_vcd
 
 #.PHONY: verilator_vcd
@@ -52,10 +50,10 @@ clean:
 ##============================================================
 
 #tb_fst: verilator_fst
-	#clang++-9 -std=c++14 -g -O3 -DTRACE_FST -I$(VERILATOR_PREFIX)/share/verilator/include/ -I$(VERILATOR_PREFIX)/share/verilator/include/vltstd -Iobj_dir_fst \
+	#clang++-9 -std=c++14 -g -O3 -DTRACE_FST -I$(VERILATOR_ROOT)/share/verilator/include/ -I$(VERILATOR_ROOT)/share/verilator/include/vltstd -Iobj_dir_fst \
 			 #main.cpp \
-			#$(VERILATOR_PREFIX)/share/verilator/include/verilated.cpp \
-			#$(VERILATOR_PREFIX)/share/verilator/include/verilated_fst_c.cpp \
+			#$(VERILATOR_ROOT)/share/verilator/include/verilated.cpp \
+			#$(VERILATOR_ROOT)/share/verilator/include/verilated_fst_c.cpp \
 			#./obj_dir_fst/Vtb__ALL.a -lz -o tb_fst
 
 #.PHONY: verilator_fst

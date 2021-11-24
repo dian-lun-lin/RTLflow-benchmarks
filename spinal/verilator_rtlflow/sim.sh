@@ -1,11 +1,21 @@
-CYCLES=(500 1000 5000 10000 50000 100000 500000 1000000)
-TESTBENCHES=(1 4 16 64 256 1024 4096 16384 65536)
-TIMES=1
+CYCLES=(10000 100000 500000 1000000)
+TESTBENCHES=(256 1024 4096 16384 65536)
+TIMES=2
+
 echo "////////RTLflow////////"
-echo "=== 1M cycles, varies number of testbenches ==="
-cycles=1000000
+cycles=100000
+echo "=== $cycles cycles, varies number of testbenches ==="
 for tb in ${TESTBENCHES[@]}; do
-  make -j8 NUM_TESTBENCHES=$tb
+  make -j8 GPU_THREADS=$tb
+  echo "======================================= Number of testbenches: $tb ======================================="
+    for ((i=1; i <= TIMES; ++i)); do
+      time ./tb $cycles
+    done
+done
+cycles=1000000
+echo "=== $cycles cycles, varies number of testbenches ==="
+for tb in ${TESTBENCHES[@]}; do
+  make -j8 GPU_THREADS=$tb
   echo "======================================= Number of testbenches: $tb ======================================="
     for ((i=1; i <= TIMES; ++i)); do
       time ./tb $cycles
@@ -14,9 +24,19 @@ done
 
 
 echo "=========================================================="
-echo "=== 65536 testbenches, varies number of cycles ==="
+tb=4096
+echo "=== $tb testbenches, varies number of cycles ==="
+make -j8 GPU_THREADS=$tb
+for cycles in ${CYCLES[@]}; do
+  echo "======================================= Number of cycles: $cycles ======================================="
+  for ((i=1; i <= TIMES; ++i)); do
+    time ./tb $cycles
+  done
+done
+
 tb=65536
-make -j8 NUM_TESTBENCHES=$tb
+echo "=== $tb testbenches, varies number of cycles ==="
+make -j8 GPU_THREADS=$tb
 for cycles in ${CYCLES[@]}; do
   echo "======================================= Number of cycles: $cycles ======================================="
   for ((i=1; i <= TIMES; ++i)); do

@@ -1,36 +1,27 @@
-
-
 SRC_FILE 			= ../spinal/ExampleTop.sim.v
-RF_VERILATOR_PREFIX	= /home/scratch.dianlunl_nvresearch/github/verilator_rtlflow
-#VERILATOR_PREFIX	= /home/dian-lun/verilator
 
 all: tb
 
 #============================================================
-# No tracing
+# Main
 #============================================================
-	#nvcc -arch=sm_75 -std=c++17 -O2 -DNUM_TESTBENCHES=$(NUM_TESTBENCHES) -I$(VERILATOR_PREFIX)/include/ -I$(RF_VERILATOR_PREFIX)/include/ --extended-lambda -DVL_THREADED=2 -I/home/dian-lun/taskflow/taskflow/ -I$(VERILATOR_PREFIX)/include/vltstd -I$(RF_VERILATOR_PREFIX)/include/vltstd -Iobj_dir_rtlflow \
-      #./obj_dir_rtlflow/check.o \
-      #$(VERILATOR_PREFIX)/include/verilated_threads.cpp \
-			#$(VERILATOR_PREFIX)/include/verilated.cpp \
-      #./verilator/VExampleTop__ALL.a \
-
 tb: verilator
-	nvcc -arch=sm_80 -std=c++17 -O2 -DNUM_TESTBENCHES=$(NUM_TESTBENCHES) -I$(RF_VERILATOR_PREFIX)/include/ --extended-lambda -DVL_THREADED=2 -I/home/scratch.dianlunl_nvresearch/github/taskflow/taskflow/ -I$(RF_VERILATOR_PREFIX)/include/vltstd -Iobj_dir_rtlflow \
-			$(RF_VERILATOR_PREFIX)/include/rf_verilated.cu \
+	nvcc -arch=sm_80 -std=c++17 -O2 -DGPU_THREADS=$(NUM_TESTBENCHES) -I$(VERILATOR_ROOT)/include/ -Xcompiler -fopenmp, --extended-lambda -DVL_THREADED=2 -I ../../taskflow/ -I$(VERILATOR_ROOT)/include/vltstd -Iobj_dir_rtlflow \
+			$(VERILATOR_ROOT)/include/rf_verilated.cu \
       ./obj_dir_rtlflow/VExampleTop__ALL.a \
 			 main.cu \
+			 -lgomp \
 			-o tb
 
 .PHONY: verilator
 verilator: 
 	rm -fr obj_dir_rtlflow
-	verilator --threads 2 -CFLAGS "-O2 -DNUM_TESTBENCHES=$(NUM_TESTBENCHES)" --Mdir obj_dir_rtlflow -Wno-fatal -cc  $(SRC_FILE)
+	verilator --stats --threads 2 -CFLAGS "-O2 -DGPU_THREADS=$(NUM_TESTBENCHES)" --Mdir obj_dir_rtlflow -Wno-fatal -cc  $(SRC_FILE)
 	cd obj_dir_rtlflow && make -f VExampleTop.mk
 	cp ../spinal/*.bin .
 
 clean:
-	\rm -fr *.bin obj_dir_rtlflow
+	rm -fr *.bin obj_dir_rtlflow
 
 ##============================================================
 ## VCD
