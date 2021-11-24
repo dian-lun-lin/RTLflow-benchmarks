@@ -1,9 +1,0 @@
-img_51x96x4_1x10x4x32_X8B8G8R8_int8_0
-dc_13x15x64_5x3x64x16_int8_0
-img_51x96x4_1x10x4x32_B8G8R8A8_int8_0
-dc_24x33x55_5x5x55x25_int8_0
-dc_32x26x76_6x3x76x16_int8_0
-cdp_8x8x64_lrn9_int8
-cdp_8x8x64_lrn3_int8_1
-cdp_8x8x64_lrn3_int8_4
-sdp_3x3x32_ew_lo_lin_int8

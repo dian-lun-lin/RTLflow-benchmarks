@@ -806,8 +806,8 @@ public:
 			else if (((op.base & 0x80000000) == 0x80000000) && axi_dbb)
 				axi = axi_dbb;
 			else {
-				printf("AXI event to bad offset\n");
-				abort();
+        printf("AXI event to bad offset\n");
+        abort();
 			}
 			
 			while (len) {
@@ -1032,7 +1032,6 @@ int main(int argc, const char **argv, char **env) {
     axi_dbb->eval();
     if (axi_cvsram)
       axi_cvsram->eval();
-    //std::cerr << "req " << dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__u_read_ig_arb__DOT__req << "\n";
 
 		dla->dla_core_clk = 1;
 		dla->dla_csb_clk = 1;
@@ -1041,160 +1040,10 @@ int main(int argc, const char **argv, char **env) {
 #if VM_TRACE
 		tfp->dump(ticks);
 #endif
-    //std::cerr << "req " << dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__u_read_ig_arb__DOT__req << "\n";
-    typedef uint32_t IData;
-    //std::cerr << "valid " << (IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__pipe_p6__DOT__pipe_skid_bpt2arb_req_valid) << ", cdp" <<  
-    //std::cerr << " vld_p " << (IData)(dla->TOP__NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_bpt6.__PVT__pipe_p2__DOT__pipe_skid_in_vld_p) << "\n";
-    //std::cerr << "vld" << (IData)dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_rdma__DOT__u_mrdma__DOT__u_NV_NVDLA_SDP_RDMA_dmaif__DOT__NV_NVDLA_SDP_RDMA_rdreq__DOT__mc_dma_rd_req_vld << "\n";
-    //std::cerr << dla->__VlSymsp->VNV_nvdla_NV_NVDLA_MCIF_READ_IG_bpt.__PVT__pipe_p1__DOT__skid_flop_dma2bpt_req_ready << "\n";
-             //(IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_rd_weight_cdp) << "\n";
-            //<< 6U)) << "\n";
-//((((IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__pipe_p5__DOT__pipe_skid_bpt2arb_req_valid) 
-                        //& (0U != (IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_rd_weight_pdp)))
-                       //<< 5U) | ((((IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__pipe_p4__DOT__pipe_skid_bpt2arb_req_valid) 
-                                   //& (0U != (IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_rd_weight_sdp_n)))
-                                  //<< 4U) | ((((IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__pipe_p3__DOT__pipe_skid_bpt2arb_req_valid) 
-                                              //& (0U 
-                                                 //!= (IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_rd_weight_sdp_b))) 
-                                             //<< 3U) 
-                                            //| ((((IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__pipe_p2__DOT__pipe_skid_bpt2arb_req_valid) 
-                                                 //& (0U 
-                                                    //!= (IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_rd_weight_sdp))) 
-                                                //<< 2U) 
-                                               //| ((((IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__pipe_p1__DOT__pipe_skid_bpt2arb_req_valid) 
-                                                    //& (0U 
-                                                       //!= (IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_rd_weight_cdma_wt)))      
-                                                   //<< 1U) 
-                                                  //| ((IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_read__DOT__u_ig__DOT__u_arb__DOT__pipe_p0__DOT__pipe_skid_bpt2arb_req_valid) 
-                                                     //& (0U 
-                                                        //!= (IData)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_rd_weight_cdma_dat)))))))));
 		
 		dla->dla_core_clk = 0;
 		dla->dla_csb_clk = 0;
 		dla->eval();
-    //std::cerr <<  (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__nvdla_falcon_rstn) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_csb_master__DOT__u_fifo_csb2nvdla__DOT__rd_popping_gray_cntr_sync) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_csb_master__DOT__u_fifo_csb2nvdla__DOT__wr_popping_gray_cntr) << "\n";
-    //std::cerr << (int)(dla->csb2nvdla_valid) << ", ";
-    //std::cerr << (int)(dla->nvdla_core2dbb_aw_awvalid) << "\n";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__is_first_cmd_dat_vld) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_cq__DOT__cq_wr_busy_int) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__axi_dat_rdy) << "\n";
-    //
-  //std::cerr << (int)dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__skid_ipipe_rdy_p << ", ";
-  //std::cerr << (int)dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__skid_flop_ipipe_rdy_p << ", ";
-    //std::cerr << (int)dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__skid_ipipe_rdy_p  << "\n";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__skid_ipipe_vld_p) << "\n"; 
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__pipe_p3__DOT__skid_axi_cmd_vld) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__pipe_p3__DOT__skid_flop_axi_cmd_rdy) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__axi_cmd_vld) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__pipe_p3__DOT__skid_flop_axi_cmd_vld) << "\n";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__os_cmd_vld)  << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__pipe_p2__DOT__pipe_spt2cvt_dat_valid) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_cvt__DOT__beat_count) << "\n";
-   //NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__src_cmd_vlds
-
-    //std::cerr << (int)(dla->NV_nvdla__DOT__nvdla_core_rstn) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt0__DOT__bpt2arb_dat_accept) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__u_dfifo0__DOT__rd_popping) << "\n";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt0__DOT__out_dat_vld) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__u_dfifo0__DOT__dfifo_wr_busy_int) << "\n";
-
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_2__DOT__pipe_bpt2arb_cmd_valid)  << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__dfifo2_wr_count)  << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_2__DOT__pipe_bpt2arb_cmd_valid) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_2__DOT__pipe_bpt2arb_cmd_pd) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_1__DOT__pipe_bpt2arb_cmd_valid) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__dfifo1_wr_count) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_1__DOT__pipe_bpt2arb_cmd_valid) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_1__DOT__pipe_bpt2arb_cmd_pd) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_0__DOT__pipe_bpt2arb_cmd_valid) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__dfifo0_wr_count) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_0__DOT__pipe_bpt2arb_cmd_valid) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_0__DOT__pipe_bpt2arb_cmd_pd) << "\n ";
-
-
-
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__skid_flop_ipipe_rdy_p) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p1__DOT__pipe_skid_dma2bpt_req_valid) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__skid_flop_ipipe_vld_p) << "\n";
-
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__skid_flop_ipipe_rdy_p) << ", ";
-     //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p1__DOT__pipe_skid_dma2bpt_req_valid) << ", ";
-  //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__skid_flop_ipipe_vld_p) << ", ";
-  //
- //std:: cerr << (int)(dla->__VinpClk__TOP__NV_nvdla__DOT__nvdla_core_rstn) << ", ";
- //std::cerr << (int)(dla->__Vclklast__TOP____VinpClk__TOP__NV_nvdla__DOT__nvdla_core_rstn) << ", ";
- //std::cerr << (int)(dla->dla_core_clk)  << ", ";
-  //std::cerr << (int)(dla->__Vclklast__TOP__dla_core_clk) << "\n";
-
-
-
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__sticky) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__arb2spt_cmd_ready) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__arb2spt_dat_ready) << "\n";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__u_write_ig_arb__DOT__gnt) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__u_write_ig_arb__DOT__gnt_pre) << "\n";
-
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__src_cmd_vlds) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_wr_weight_cdp) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_wr_weight_pdp) << ", "; 
-    ////std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__reg2dp_wr_weight_sdp) << "\n";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt0__DOT__pipe_p2__DOT__pipe_skid_ipipe_vld_p) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt0__DOT__pipe_p2__DOT__pipe_skid_ipipe_pd_p[2U]) << "\n"; 
-
-    //std::cerr << (int)(dla->NV_nvdla__DOT__nvdla_core_rstn) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt0__DOT__pipe_p2__DOT__skid_ipipe_rdy_p) << ", ";
-    
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt0__DOT__pipe_p1__DOT__skid_flop_dma2bpt_req_ready) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dmaif_wr__DOT__pipe_skid_mc_dma_wr_req_vld) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt0__DOT__pipe_p1__DOT__skid_flop_dma2bpt_req_valid) << "\n";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dmaif_wr__DOT__skid_mc_dma_wr_req_vld) << ", ";
-    
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dmaif_wr__DOT__skid_flop_mc_dma_wr_req_rdy_f) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dmaif_wr__DOT__mc_dma_wr_req_vld) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dmaif_wr__DOT__skid_flop_mc_dma_wr_req_vld) << "\n";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__dma_wr_req_vld) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_out__DOT__cmd_en) << ", "; 
-       //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_out__DOT__cmd_vld) << ", "; 
-       //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_out__DOT__dat_en) << ", "; 
-       //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_out__DOT__dat_vld) << ", ";
-       //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__reg2dp_output_dst) << "\n";
-    ////std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__src_cmd_vlds) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_2__DOT__pipe_bpt2arb_cmd_valid) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__dfifo2_wr_count) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_2__DOT__pipe_bpt2arb_cmd_valid) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_2__DOT__pipe_bpt2arb_cmd_pd) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_1__DOT__pipe_bpt2arb_cmd_valid) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__dfifo1_wr_count) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_1__DOT__pipe_bpt2arb_cmd_valid) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_1__DOT__pipe_bpt2arb_cmd_pd) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_0__DOT__pipe_bpt2arb_cmd_valid) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__dfifo0_wr_count) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_0__DOT__pipe_bpt2arb_cmd_valid) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_arb__DOT__pipe_0__DOT__pipe_bpt2arb_cmd_pd)  << "\n";
-
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_mcif__DOT__u_write__DOT__u_ig__DOT__u_bpt2__DOT__pipe_p2__DOT__pipe_skid_ipipe_pd_p[2U]) << "\n"; 
-
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_csb_master__DOT__u_fifo_csb2nvdla__DOT__wr_count_next_is_4) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_csb_master__DOT__u_fifo_csb2nvdla__DOT__wr_req_in)  << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_csb_master__DOT__u_fifo_csb2nvdla__DOT__wr_count_next_is_4) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_o__DOT__u_NV_NVDLA_csb_master__DOT__u_fifo_csb2nvdla__DOT__wr_reserving) << "\n";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_out__DOT__dfifo3_rd_en) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_in__DOT__u_dfifo3__DOT__pipe_skid_dfifo_wr_pvld) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_out__DOT__dfifo2_rd_en) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_in__DOT__u_dfifo2__DOT__pipe_skid_dfifo_wr_pvld) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_out__DOT__dfifo1_rd_en) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_in__DOT__u_dfifo1__DOT__pipe_skid_dfifo_wr_pvld) << ", ";
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_out__DOT__dfifo0_rd_en) << ", "; 
-    //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_in__DOT__u_dfifo0__DOT__pipe_skid_dfifo_wr_pvld) << "\n";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_dpout_unpack__DOT__pack_pvld) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_wdma__DOT__u_dat__DOT__u_in__DOT__beat_count) << "\n";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__core2wdma_vld)<< ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_dpout_unpack__DOT__pack_cnt) << "\n";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__pipe_p4__DOT__p4_skid_ready_flop) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__final_out_pvld) << ", ";
-   //std::cerr << (int)(dla->NV_nvdla__DOT__u_partition_p__DOT__u_NV_NVDLA_sdp__DOT__u_core__DOT__u_c__DOT__c_int_0__DOT__pipe_p4__DOT__p4_skid_valid) << "\n ";
 		ticks++;
 #if VM_TRACE
 		tfp->dump(ticks);

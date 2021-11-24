@@ -30,7 +30,7 @@ class VerilatorTraceWriter(object):
         self.f.write(data)
     
     def close(self):
-        self.f.write(struct.pack('=B', 0xFF))
+        # self.f.write(struct.pack('=B', 0xFF))
         self.f.close()
     
     def register_syncpt_mask(self, id, mask):

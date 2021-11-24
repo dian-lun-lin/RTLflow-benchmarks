@@ -17,7 +17,7 @@ VERILATOR_PARAMS ?= --compiler clang --output-split 250000000
 #   VERILATOR_PARAMS += --trace --trace-depth 7 --trace-max-array 8
 
 # Perhaps you want to optimize?
-#   VERILATOR_PARAMS += -O3
+	 VERILATOR_PARAMS += -O2
 #   VMAKE_PARAMS += OPT_FAST=-O
 
 # We end up hardcoding this, because the .f file applies only to nv_full,

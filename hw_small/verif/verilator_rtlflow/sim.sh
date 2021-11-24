@@ -1,68 +1,27 @@
 #CYCLES=(500 1000 5000 10000 50000 100000 500000 1000000)
-#LOOP_TESTBENCHES=(1 10 20 30 40 50 60 70 80 90 100)
-LOOP_TESTBENCHES=(1)
+#NUM_TESTBENCHES=(64)
+CYCLES=(100000)
+NUM_TESTBENCHES=(4096)
 TIMES=1
 
-filename="$1"
-files=()
+OUTPUT_DIR="../../../verif/verilator_rtlflow"
 
-# current path
-# ./verif/verilator_rtlflow
+for ((k=1; k<=$TIMES; ++k)); do
+  for nc in ${CYCLES[@]}; do
+    for ntb in ${NUM_TESTBENCHES[@]}; do
 
-while read -r line; do
-  files+=("../../../verif/verilator/traces/$line/trace.bin")
-done < "$filename"
+    make -j32 GPU_THREADS=$ntb
 
-tbs=()
-TOTAL_TESTBENCHES=${#files[*]}
+    cd ../../outdir/nv_small/
 
-echo "////////RTLflow////////"
-echo "=== Varies number of testbenches ==="
-for ltb in ${LOOP_TESTBENCHES[@]}; do
+    cd verilator_rtlflow_$ntb
+    printf "======================================= Number of testbenches: $ntb =======================================" >> $OUTPUT_DIR/c$nc\_tb$ntb.out
+    printf "======================================= Cycles: $nc =======================================" >> $OUTPUT_DIR/c$nc\_tb$ntb.out
+    (time ./VNV_nvdla $ntb $nc ../../../verif/verilator/tb_gen_scripts/random_traces ) 2>> $OUTPUT_DIR/c$nc\_tb$ntb.out
 
-  # duplicate testbenches
-  for file in ${files[@]}; do
-    for i in {1..$ltb}; do
-      tbs+=($file)
+    cd ../../../verif/verilator_rtlflow
+
     done
   done
-  
-  # shuffle testbenches
-  tbs=( $(shuf -e "${tbs[@]}") )
-
-
-  # compile the NVDLA design
-  
-  ntb=$((TOTAL_TESTBENCHES * ltb))
-  #make -j8 NUM_TESTBENCHES=$ntb
-
-  # simulate testbenches in parallel
-  # ../outdir/hw_small/verilator_rtlflow
-
-  cd ../../outdir/nv_small/verilator_rtlflow
-  echo "======================================= Number of testbenches: $ntb ======================================="
-  for ((i=1; i <= $TIMES; ++i)); do
-    time ./VNV_nvdla "${tbs[@]}"
-  done
-
-  ## ../outdir/hw_small/
-  cd ../
-  #mv verilator_rtlflow verilator_rtlflow_$ntb
-
-  ## ./verif
-  tbs=()
-  cd ../../verif/verilator_rtlflow
 done
-
-
-#echo "=========================================================="
-#echo "=== 65536 testbenches, varies number of cycles ==="
-#tb=65536
-#make -j8 NUM_TESTBENCHES=$tb
-#for cycles in ${CYCLES[@]}; do
-  #echo "======================================= Number of cycles: $cycles ======================================="
-  #for ((i=1; i <= TIMES; ++i)); do
-    #time ./tb $cycles
-  #done
-#done
 
