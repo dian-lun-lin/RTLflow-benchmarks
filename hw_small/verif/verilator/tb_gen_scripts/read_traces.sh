@@ -5,7 +5,7 @@ files=()
 while read -r line; do
   lines=($line)
   files+=("${lines[0]}")
-done < "traces_wo_large.out"
+done < "legal_files_wo_large"
 #PATH=
 
 trace_dir="traces"

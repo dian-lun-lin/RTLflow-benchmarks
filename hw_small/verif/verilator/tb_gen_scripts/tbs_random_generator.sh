@@ -14,7 +14,7 @@ mkdir $OUTPUT_DIR
 while read -r line; do
   words=($line)
   files+=(${words[0]})
-done < "traces_wo_large.out"
+done < "legal_files_wo_large"
 
 
 for ((c=0; c<$NUM_TESTBENCHES; ++c)); do
