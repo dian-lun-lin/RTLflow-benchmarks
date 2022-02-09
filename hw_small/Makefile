@@ -24,6 +24,7 @@ NV_VERDI_HOME ?= /home/tools/debussy/verdi3_2016.06-SP2-9
 NV_NOVAS_HOME ?= /home/tools/debussy/verdi3_2016.06-SP2-9
 NV_VCS_HOME   ?= /home/tools/vcs/mx-2016.06-SP2-4
 NV_VERILATOR  ?= verilator
+NV_RTLFLOW    ?= rtlflow
 NV_CLANG      ?= /home/utils/llvm-4.0.1/bin/clang
 
 VM_USE_DESIGNWARE ?= 1
@@ -40,6 +41,7 @@ VM_VERDI_HOME ?= /home/tools/debussy/verdi3_2016.06-SP2-9
 VM_NOVAS_HOME ?= /home/tools/debussy/verdi3_2016.06-SP2-9
 VM_VCS_HOME   ?= /home/tools/vcs/mx-2016.06-SP2-4
 VM_VERILATOR  ?= verilator
+VM_RTLFLOW    ?= rtlflow
 VM_CLANG      ?= /home/utils/llvm-4.0.1/bin/clang
 
 default: $(TREE_MAKE)
@@ -102,6 +104,7 @@ ifeq (1,$(USE_VM_ENV))
 	@echo "VCS_HOME   := $(VM_VCS_HOME)"   >> $@
 	@echo "CLANG      := $(VM_CLANG)"      >> $@
 	@echo "VERILATOR  := $(VM_VERILATOR)"  >> $@
+	@echo "RTLFLOW    := $(VM_RTLFLOW)"  >> $@
 else
 	@read -p "Using designware or not [1 for use/0 for not use] (Press ENTER if use: $(NV_USE_DESIGNWARE)):" opt; if [ "_$$opt" = "_" ]; then echo "USE_DESIGNWARE  := $(NV_USE_DESIGNWARE)" >> $@;  else echo "USE_DESIGNWARE  := $$opt" >> $@; fi
 	@read -p "Enter design ware path (Press ENTER if use: $(NV_DESIGNWARE_DIR)):" opt; if [ "_$$opt" = "_" ]; then echo "DESIGNWARE_DIR  := $(NV_DESIGNWARE_DIR)" >> $@;  else echo "DESIGNWARE_DIR  := $$opt" >> $@; fi
@@ -116,6 +119,7 @@ else
 	@read -p "Enter novas_home path      (Press ENTER if use: $(NV_NOVAS_HOME)):" opt; if [ "_$$opt" = "_" ]; then echo "NOVAS_HOME := $(NV_NOVAS_HOME)" >> $@;  else echo "NOVAS_HOME := $$opt" >> $@; fi
 	@read -p "Enter verdi_home path      (Press ENTER if use: $(NV_VERDI_HOME)):" opt; if [ "_$$opt" = "_" ]; then echo "VERDI_HOME := $(NV_VERDI_HOME)" >> $@;  else echo "VERDI_HOME := $$opt" >> $@; fi
 	@read -p "OPTIONAL: Enter verilator path (Press ENTER to use: $(NV_VERILATOR)):" opt_verilator; if [ "_$$opt_verilator" = "_" ]; then echo "VERILATOR := $(NV_VERILATOR)" >> $@;  else echo "VERILATOR := $$opt_verilator" >> $@; fi
+	@read -p "OPTIONAL: Enter rtlflow path (Press ENTER to use: $(NV_RTLFLOW)):" opt_rtlflow; if [ "_$$opt_rtlflow" = "_" ]; then echo "RTLFLOW := $(NV_RTLFLOW)" >> $@;  else echo "RTLFLOW := $$opt_rtlflow" >> $@; fi
 	@read -p "OPTIONAL: Enter clang path     (Press ENTER to use: $(NV_CLANG)):" opt_clang; if [ "_$$opt_clang" = "_" ]; then echo "CLANG := $(NV_CLANG)" >> $@;  else echo "CLANG := $$opt_clang" >> $@; fi
 endif
 endif
