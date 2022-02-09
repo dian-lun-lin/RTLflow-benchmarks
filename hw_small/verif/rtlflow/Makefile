@@ -11,7 +11,7 @@ include $(DEPTH)/tools/make/common.make
 
 default: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_$(GPU_THREADS)/VNV_nvdla
 
-RTLFLOW_PARAMS ?= --compiler clang  -CFLAGS "-O2 -DGPU_THREADS=$(GPU_THREADS)" 
+RTLFLOW_PARAMS ?= -CFLAGS "-O2 -DGPU_THREADS=$(GPU_THREADS)" 
 # Perhaps you need to trace?
 #   VERILATOR_PARAMS += --trace --trace-depth 7 --trace-max-array 8
 
