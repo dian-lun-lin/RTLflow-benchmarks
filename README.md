@@ -48,4 +48,11 @@ You can generate numbers of testbenches by using our scripts. Our scripts genera
 ```
 Your testbenches will be under ```hw_small/verif/verilator/tb_gen_scripts/random_traces```.
 
+## Step 4: Perform simulation
+To perform simulation, simply type:
+```bash
+~/hw_small/verif/rtlflow$ bash sim.sh $NUM_CYCLES $NUM_TESTBENCHES
+```
+After simulation, you will see .out file for simulation time.
+
 
