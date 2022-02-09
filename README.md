@@ -17,6 +17,12 @@ You will need to setup your environment to build NVDLA design. To simulate NVDLA
 <img src="./img/env.png" width="725" height="250"/>
 </p>
 
+For perl, you need to install YAML and XML::Simple module:
+```bash
+sudo apt install libconfig-yaml-perl
+sudo apt-get install libxml-simple-perl
+```
+
 After setting your environment, you need to use tmake to build the simulator
 
 ```bash
