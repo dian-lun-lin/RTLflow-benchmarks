@@ -17,8 +17,6 @@
 #include <map>
 #include <vector>
 
-#include <algorithm/pipeline.hpp>
-
 #include "rf_verilated.h"
 
 #include "VNV_nvdla.h"
@@ -55,8 +53,8 @@ void _close_trace() {
 
 uint64_t ticks = 0;
 
-//RF::RTLflow rtlflow(GPU_THREADS);
-//RF::RTLflow& RF::VNV_nvdla::_rtlflow = rtlflow;
+RF::RTLflow rtlflow(GPU_THREADS);
+RF::RTLflow& RF::VNV_nvdla::_rtlflow = rtlflow;
 std::chrono::time_point<std::chrono::steady_clock> total_tic;
 std::chrono::time_point<std::chrono::steady_clock> total_toc;
 std::chrono::time_point<std::chrono::steady_clock> tic;
@@ -985,6 +983,7 @@ int main(int argc, const char **argv, char **env) {
     //return 1;
   //}
 
+  RF::VNV_nvdla *rf_dla = new RF::VNV_nvdla;
 
   const size_t NUM_TESTBENCHES = std::stoi(argv[1]);
   const size_t CYCLES = std::stoi(argv[2]);
@@ -993,119 +992,99 @@ int main(int argc, const char **argv, char **env) {
   // In this version, we simulate all testbenches at a time.
   assert(NUM_TESTBENCHES==GPU_THREADS);
 
-
-  //uint32_t quiesc_timer = 200;
-  int rf_waiting = 0;
-
-  size_t NUM_PIPES = 4;
-  size_t BATCH_SIZE = NUM_TESTBENCHES / NUM_PIPES;
-  tf::Taskflow taskflow;
-  std::vector<tf::Pipe<>> pipes;
-  tf::ScalablePipeline<decltype(pipes)::iterator> spl;
-
-  std::vector<RF::VNV_nvdla*> duts(NUM_PIPES);
-  std::vector<std::vector<TraceLoader*>> rf_trace(NUM_PIPES);
-  std::vector<std::vector<CSBMaster*>> rf_csb(NUM_PIPES);
-  std::vector<std::vector<AXIResponder*>> rf_axi_dbb(NUM_PIPES);
-  std::vector<std::vector<AXIResponder*>> rf_axi_cvsram(NUM_PIPES);
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    duts[p] = new RF::VNV_nvdla;
-    rf_trace.resize(NUM_TESTBENCHES, nullptr);
-    rf_csb.resize(NUM_TESTBENCHES, nullptr);
-    rf_axi_dbb.resize(NUM_TESTBENCHES, nullptr);
-    rf_axi_cvsram.resize(NUM_TESTBENCHES, nullptr);
-  }
+  std::vector<TraceLoader*> rf_trace(NUM_TESTBENCHES, nullptr);
+  std::vector<CSBMaster*> rf_csb(NUM_TESTBENCHES, nullptr);
+  std::vector<AXIResponder*> rf_axi_dbb(NUM_TESTBENCHES, nullptr);
+  std::vector<AXIResponder*> rf_axi_cvsram(NUM_TESTBENCHES, nullptr);
 
   RF::Verilated::commandArgs(argc, argv);
 
   #pragma omp parallel for
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    for(size_t t = 0; t < BATCH_SIZE; ++t) {
-      rf_csb[p][t] = new CSBMaster(rf_dla, t);
-      
-      AXIResponder::connections rf_dbbconn = {
-        .aw_awvalid = rtlflow.get(rf_dla[p]->nvdla_core2dbb_aw_awvalid, t),
-        .aw_awready = rtlflow.get(rf_dla[p]->nvdla_core2dbb_aw_awready, t),
-
-        .aw_awid = rtlflow.get(rf_dla[p]->nvdla_core2dbb_aw_awid, t),
-        .aw_awlen = rtlflow.get(rf_dla[p]->nvdla_core2dbb_aw_awlen, t),
-        .aw_awaddr = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awaddr, t),
-        
-        .w_wvalid = rtlflow.get(rf_dla->nvdla_core2dbb_w_wvalid, t),
-        .w_wready = rtlflow.get(rf_dla->nvdla_core2dbb_w_wready, t),
-        .w_wdata = AXI_WDATA_MKPTR *(rtlflow.get(rf_dla->nvdla_core2dbb_w_wdata, t)),
-        .w_wstrb = rtlflow.get(rf_dla->nvdla_core2dbb_w_wstrb, t),
-        .w_wlast = rtlflow.get(rf_dla->nvdla_core2dbb_w_wlast, t),
-        
-        .b_bvalid = rtlflow.get(rf_dla->nvdla_core2dbb_b_bvalid, t),
-        .b_bready = rtlflow.get(rf_dla->nvdla_core2dbb_b_bready, t),
-        .b_bid = rtlflow.get(rf_dla->nvdla_core2dbb_b_bid, t),
-
-        .ar_arvalid = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arvalid, t),
-        .ar_arready = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arready, t),
-        .ar_arid = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arid, t),
-        .ar_arlen = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arlen, t),
-        .ar_araddr = rtlflow.get(rf_dla->nvdla_core2dbb_ar_araddr, t),
-      
-        .r_rvalid = rtlflow.get(rf_dla->nvdla_core2dbb_r_rvalid, t),
-        .r_rready = rtlflow.get(rf_dla->nvdla_core2dbb_r_rready, t),
-        .r_rid = rtlflow.get(rf_dla->nvdla_core2dbb_r_rid, t),
-        .r_rlast = rtlflow.get(rf_dla->nvdla_core2dbb_r_rlast, t),
-        .r_rdata = AXI_WDATA_MKPTR *(rtlflow.get(rf_dla->nvdla_core2dbb_r_rdata, t)),
-      };
-      rf_axi_dbb[t] = new AXIResponder(rf_dbbconn, "DBB");
-
-    #ifdef NVDLA_SECONDARY_MEMIF_ENABLE
-      AXIResponder::connections rf_cvsramconn = {
-        .aw_awvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awvalid, t),
-        .aw_awready = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awready, t),
-        .aw_awid = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awid, t),
-        .aw_awlen = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awlen, t),
-        .aw_awaddr = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awaddr, t),
-        
-        .w_wvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wvalid, t),
-        .w_wready = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wready, t),
-        .w_wdata = *(rtlflow.get(rf_dla->nvdla_core2cvsram_w_wdata, t)),
-        .w_wstrb = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wstrb, t),
-        .w_wlast = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wlast, t),
-        
-        .b_bvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bvalid, t),
-        .b_bready = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bready, t),
-        .b_bid = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bid, t),
-
-        .ar_arvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arvalid, t),
-        .ar_arready = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arready, t),
-        .ar_arid = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arid, t),
-        .ar_arlen = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arlen, t),
-        .ar_araddr = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_araddr, t),
-      
-        .r_rvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rvalid, t),
-        .r_rready = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rready, t),
-        .r_rid = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rid, t),
-        .r_rlast = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rlast, t),
-        .r_rdata = *(rtlflow.get(rf_dla->nvdla_core2cvsram_r_rdata, t)),
-      };
-      rf_axi_cvsram[t] = new AXIResponder(rf_cvsramconn, "CVSRAM");
-    #else
-      rf_axi_cvsram[t] = nullptr;
-    #endif
-
-    rf_trace[t] = new TraceLoader(rf_csb[t], rf_axi_dbb[t], rf_axi_cvsram[t]);
-
+  for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+    rf_csb[t] = new CSBMaster(rf_dla, t);
     
-      *(rtlflow.get(rf_dla->global_clk_ovr_on, t)) = 0;
-      *(rtlflow.get(rf_dla->tmc2slcg_disable_clock_gating, t)) = 0;
-      *(rtlflow.get(rf_dla->test_mode, t)) = 0;
-      *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_c_pd, t)) = 0;
-      *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_ma_pd, t)) = 0;
-      *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_mb_pd , t))= 0;
-      *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_p_pd, t)) = 0;
-      *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_o_pd, t)) = 0;
-      *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_a_pd, t)) = 0;
+    AXIResponder::connections rf_dbbconn = {
+      .aw_awvalid = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awvalid, t),
+      .aw_awready = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awready, t),
+
+      .aw_awid = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awid, t),
+      .aw_awlen = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awlen, t),
+      .aw_awaddr = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awaddr, t),
+      
+      .w_wvalid = rtlflow.get(rf_dla->nvdla_core2dbb_w_wvalid, t),
+      .w_wready = rtlflow.get(rf_dla->nvdla_core2dbb_w_wready, t),
+      .w_wdata = AXI_WDATA_MKPTR *(rtlflow.get(rf_dla->nvdla_core2dbb_w_wdata, t)),
+      .w_wstrb = rtlflow.get(rf_dla->nvdla_core2dbb_w_wstrb, t),
+      .w_wlast = rtlflow.get(rf_dla->nvdla_core2dbb_w_wlast, t),
+      
+      .b_bvalid = rtlflow.get(rf_dla->nvdla_core2dbb_b_bvalid, t),
+      .b_bready = rtlflow.get(rf_dla->nvdla_core2dbb_b_bready, t),
+      .b_bid = rtlflow.get(rf_dla->nvdla_core2dbb_b_bid, t),
+
+      .ar_arvalid = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arvalid, t),
+      .ar_arready = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arready, t),
+      .ar_arid = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arid, t),
+      .ar_arlen = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arlen, t),
+      .ar_araddr = rtlflow.get(rf_dla->nvdla_core2dbb_ar_araddr, t),
+    
+      .r_rvalid = rtlflow.get(rf_dla->nvdla_core2dbb_r_rvalid, t),
+      .r_rready = rtlflow.get(rf_dla->nvdla_core2dbb_r_rready, t),
+      .r_rid = rtlflow.get(rf_dla->nvdla_core2dbb_r_rid, t),
+      .r_rlast = rtlflow.get(rf_dla->nvdla_core2dbb_r_rlast, t),
+      .r_rdata = AXI_WDATA_MKPTR *(rtlflow.get(rf_dla->nvdla_core2dbb_r_rdata, t)),
+    };
+    rf_axi_dbb[t] = new AXIResponder(rf_dbbconn, "DBB");
+
+  #ifdef NVDLA_SECONDARY_MEMIF_ENABLE
+    AXIResponder::connections rf_cvsramconn = {
+      .aw_awvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awvalid, t),
+      .aw_awready = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awready, t),
+      .aw_awid = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awid, t),
+      .aw_awlen = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awlen, t),
+      .aw_awaddr = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awaddr, t),
+      
+      .w_wvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wvalid, t),
+      .w_wready = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wready, t),
+      .w_wdata = *(rtlflow.get(rf_dla->nvdla_core2cvsram_w_wdata, t)),
+      .w_wstrb = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wstrb, t),
+      .w_wlast = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wlast, t),
+      
+      .b_bvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bvalid, t),
+      .b_bready = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bready, t),
+      .b_bid = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bid, t),
+
+      .ar_arvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arvalid, t),
+      .ar_arready = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arready, t),
+      .ar_arid = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arid, t),
+      .ar_arlen = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arlen, t),
+      .ar_araddr = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_araddr, t),
+    
+      .r_rvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rvalid, t),
+      .r_rready = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rready, t),
+      .r_rid = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rid, t),
+      .r_rlast = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rlast, t),
+      .r_rdata = *(rtlflow.get(rf_dla->nvdla_core2cvsram_r_rdata, t)),
+    };
+    rf_axi_cvsram[t] = new AXIResponder(rf_cvsramconn, "CVSRAM");
+  #else
+    rf_axi_cvsram[t] = nullptr;
+  #endif
+
+  rf_trace[t] = new TraceLoader(rf_csb[t], rf_axi_dbb[t], rf_axi_cvsram[t]);
+
+  
+    *(rtlflow.get(rf_dla->global_clk_ovr_on, t)) = 0;
+    *(rtlflow.get(rf_dla->tmc2slcg_disable_clock_gating, t)) = 0;
+    *(rtlflow.get(rf_dla->test_mode, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_c_pd, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_ma_pd, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_mb_pd , t))= 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_p_pd, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_o_pd, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_a_pd, t)) = 0;
 
 
-      rf_trace[t]->load(std::string(dir+"tb"+std::to_string(t)+".bin").c_str());
-    }
+    rf_trace[t]->load(std::string(dir+"tb"+std::to_string(t)+".bin").c_str());
   }
 
   printf("reset...\n");
@@ -1271,10 +1250,14 @@ int main(int argc, const char **argv, char **env) {
   }
 
   printf("running trace...\n");
+  //uint32_t quiesc_timer = 200;
+  int rf_waiting = 0;
 
-  auto one_cycle_t = [&](){
+  //bool alldone{false};
+  tic = std::chrono::steady_clock::now();
+  for(size_t c = 0; c < CYCLES; ++c) {
     #pragma omp parallel for
-    for(size_t t = 0; t < BATCH_SIZE; ++t) {
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       //if(!rf_csb[t]->done()) {
         //alldone = false;
         int rf_extevent;
@@ -1315,6 +1298,8 @@ int main(int argc, const char **argv, char **env) {
       //dla->dla_csb_clk = 1;
     }
 
+    //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+    //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
     rf_dla->eval();
     //dla->eval();
     ticks++;
@@ -1326,33 +1311,13 @@ int main(int argc, const char **argv, char **env) {
       //dla->dla_core_clk = 0;
       //dla->dla_csb_clk = 0;
     }
+    //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+    //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
 
     rf_dla->eval();
     //dla->eval();
     ticks++;
-  };
-
-  for(size_t i = 0; i < NUM_PIPES; ++i) {
-    pipes.emplace_back(tf::PipeType::SERIAL, [CYCLES](tf::Pipeflow& pf) mutable {
-      switch(pf.pipe()) {
-        case 0:
-          if(pf.token() == CYCLES) {
-            pf.stop();
-            return;
-          }
-
-        break;
-      
-        default: {
-          
-        }
-        break;
-      }
-    });
   }
-
-  //bool alldone{false};
-  tic = std::chrono::steady_clock::now();
   toc = std::chrono::steady_clock::now();
   eval_duration +=  std::chrono::duration_cast<std::chrono::seconds>(toc - tic).count();
 
