@@ -17,12 +17,11 @@
 #include <map>
 #include <vector>
 
-#include <algorithm/pipeline.hpp>
-
 #include "rf_verilated.h"
 
 #include "VNV_nvdla.h"
 #include "rtlflow.h"
+#include "rf_heavy.h"
 //#include "../verilator/VNV_nvdla.h"
 //#include "../verilator/VNV_nvdla__Syms.h"
 
@@ -56,7 +55,7 @@ void _close_trace() {
 
 uint64_t ticks = 0;
 
-//RF::RTLflow rtlflow(RF::THREADS);
+//RF::RTLflow rtlflow(GPU_THREADS);
 //RF::RTLflow& RF::VNV_nvdla::_rtlflow = rtlflow;
 std::chrono::time_point<std::chrono::steady_clock> total_tic;
 std::chrono::time_point<std::chrono::steady_clock> total_toc;
@@ -97,8 +96,7 @@ class CSBMaster {
 	
 	std::queue<csb_op> opq;
 	
-	RF::VNV_nvdla *dut;
-  RF::RTLflow& rtlflow;
+	RF::VNV_nvdla *rf_dla;
 	//VNV_nvdla *dla;
   size_t idx;
 	
@@ -115,11 +113,12 @@ class CSBMaster {
 	
 	/* Maps from outstanding syncpoint IDs to interrupt masks. */
 	std::map<uint32_t, uint32_t> syncpts;
+  RF::RTLflow& rtlflow;
 	
 public:
-	CSBMaster(RF::RTLflow& rtlflow, RF::VNV_nvdla *dut, size_t idx):rtlflow{rtlflow}, dut{dut}, idx{idx} {
+	CSBMaster(RF::RTLflow& rtlflow, RF::VNV_nvdla *_dla, size_t idx): rtlflow{rtlflow}, rf_dla{_dla}, idx{idx} {
 		
-		*(rtlflow.get(dut->csb2nvdla_valid, idx)) = 0;
+		*(rtlflow.get(rf_dla->csb2nvdla_valid, idx)) = 0;
 		_test_passed = 1;
 		quiet = 0;
 	}
@@ -165,11 +164,11 @@ public:
 		opq.push(op);
 	}
 
-	int eval(int noop) {
-		if (*(rtlflow.get(dut->nvdla2csb_wr_complete, idx)))
+	int rf_eval(int noop) {
+		if (*(rtlflow.get(rf_dla->nvdla2csb_wr_complete, idx)))
 			if (!quiet) printf("(%lu) write complete from CSB\n", ticks);
 		
-    *(rtlflow.get(dut->csb2nvdla_valid, idx)) = 0;
+    *(rtlflow.get(rf_dla->csb2nvdla_valid, idx)) = 0;
 
 		if (opq.empty() && syncpts.empty())
 			return 0;
@@ -190,14 +189,14 @@ public:
 			return ext;
 		}
 		
-		if (!op.write && op.reading && *(rtlflow.get(dut->nvdla2csb_valid, idx))) {
-			if (!quiet) printf("(%lu) read response from nvdla: %08x\n", ticks, *(rtlflow.get(dut->nvdla2csb_data, idx)));
+		if (!op.write && op.reading && *(rtlflow.get(rf_dla->nvdla2csb_valid, idx))) {
+			if (!quiet) printf("(%lu) read response from nvdla: %08x\n", ticks, *(rtlflow.get(rf_dla->nvdla2csb_data, idx)));
 			
 			if (op.why == IS_MASK) {
-				last_mask = *(rtlflow.get(dut->nvdla2csb_data, idx));
+				last_mask = *(rtlflow.get(rf_dla->nvdla2csb_data, idx));
 				opq.pop();
 			} else if (op.why == IS_STATUS) {
-				last_status = *(rtlflow.get(dut->nvdla2csb_data, idx));
+				last_status = *(rtlflow.get(rf_dla->nvdla2csb_data, idx));
 				opq.pop();
 				
 				uint32_t status = ~last_mask & last_status;
@@ -212,7 +211,7 @@ public:
 					
 					return it->first;
 				}
-			} else if ((*(rtlflow.get(dut->nvdla2csb_data, idx)) & op.mask) != (op.data & op.mask)) {
+			} else if ((*(rtlflow.get(rf_dla->nvdla2csb_data, idx)) & op.mask) != (op.data & op.mask)) {
 				op.reading = 0;
 				op.tries--;
 				if (!quiet) printf("(%lu) invalid response -- trying again\n", ticks);
@@ -231,23 +230,23 @@ public:
 		if (noop)
 			return 0;
 		
-		if (!*(rtlflow.get(dut->csb2nvdla_ready, idx))) {
+		if (!*(rtlflow.get(rf_dla->csb2nvdla_ready, idx))) {
 			if (!quiet) printf("(%lu) CSB stalled...\n", ticks);
 			return 0;
 		}
 		
 		if (op.write) {
-			*(rtlflow.get(dut->csb2nvdla_valid, idx)) = 1;
-			*(rtlflow.get(dut->csb2nvdla_addr, idx)) = op.addr;
-			*(rtlflow.get(dut->csb2nvdla_wdat, idx)) = op.data;
-			*(rtlflow.get(dut->csb2nvdla_write, idx)) = 1;
-			*(rtlflow.get(dut->csb2nvdla_nposted, idx)) = 0;
+			*(rtlflow.get(rf_dla->csb2nvdla_valid, idx)) = 1;
+			*(rtlflow.get(rf_dla->csb2nvdla_addr, idx)) = op.addr;
+			*(rtlflow.get(rf_dla->csb2nvdla_wdat, idx)) = op.data;
+			*(rtlflow.get(rf_dla->csb2nvdla_write, idx)) = 1;
+			*(rtlflow.get(rf_dla->csb2nvdla_nposted, idx)) = 0;
 			if (!quiet) printf("(%lu) write to nvdla: addr %08x, data %08x\n", ticks, op.addr, op.data);
 			opq.pop();
 		} else {
-			*(rtlflow.get(dut->csb2nvdla_valid, idx)) = 1;
-			*(rtlflow.get(dut->csb2nvdla_addr, idx)) = op.addr;
-			*(rtlflow.get(dut->csb2nvdla_write, idx)) = 0;
+			*(rtlflow.get(rf_dla->csb2nvdla_valid, idx)) = 1;
+			*(rtlflow.get(rf_dla->csb2nvdla_addr, idx)) = op.addr;
+			*(rtlflow.get(rf_dla->csb2nvdla_write, idx)) = 0;
 			if (!quiet) printf("(%lu) read from nvdla: addr %08x\n", ticks, op.addr);
 			
 			op.reading = 1;
@@ -981,430 +980,383 @@ public:
 };
 
 int main(int argc, const char **argv, char **env) {
-  //total_tic = std::chrono::steady_clock::now();
+  total_tic = std::chrono::steady_clock::now();
   //if (argc != 4) {
     //fprintf(stderr, "nvdla requires exactly 3 parameters\n");
     //return 1;
   //}
 
+  RF::VNV_nvdla *rf_dla = new RF::VNV_nvdla;
+  RF::RTLflow rtlflow;
+  RF::RTLflow rtlflow2;
+  rtlflow.initialize(rf_dla);
+  rtlflow2.initialize(rf_dla);
+
   const size_t NUM_TESTBENCHES = std::stoi(argv[1]);
-  const size_t NUM_CYCLES = std::stoi(argv[2]);
+  const size_t CYCLES = std::stoi(argv[2]);
   std::string dir{argv[3]}; 
-  size_t NUM_PIPES = NUM_TESTBENCHES / RF::THREADS;
-  printf("Number of testbenches: %zu\n", NUM_TESTBENCHES);
-  printf("Number of cycles: %zu\n", NUM_CYCLES);
-  printf("Number of GPU threads: %zu\n", RF::THREADS);
-  printf("Number of pipes: %zu\n", NUM_PIPES);
-  printf("Directory of testbenches: %s\n", dir.c_str());
 
-  RF::VNV_nvdla* dut = new RF::VNV_nvdla;
-  std::vector<RF::RTLflow> rtlflows(NUM_PIPES);
-  std::vector<std::vector<TraceLoader*>> traces(NUM_PIPES);
-  std::vector<std::vector<CSBMaster*>> csbs(NUM_PIPES);
-  std::vector<std::vector<AXIResponder*>> axi_dbbs(NUM_PIPES);
-  std::vector<std::vector<AXIResponder*>> axi_cvsrams(NUM_PIPES);
-  printf("Initialize...................\n");
+  // In this version, we simulate all testbenches at a time.
+  assert(NUM_TESTBENCHES==GPU_THREADS);
 
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    traces[p].resize(RF::THREADS);
-    csbs[p].resize(RF::THREADS);
-    axi_dbbs[p].resize(RF::THREADS);
-    axi_cvsrams[p].resize(RF::THREADS);
-    rtlflows[p].initialize(dut);
-  }
+  std::vector<TraceLoader*> rf_trace(NUM_TESTBENCHES, nullptr);
+  std::vector<CSBMaster*> rf_csb(NUM_TESTBENCHES, nullptr);
+  std::vector<AXIResponder*> rf_axi_dbb(NUM_TESTBENCHES, nullptr);
+  std::vector<AXIResponder*> rf_axi_cvsram(NUM_TESTBENCHES, nullptr);
+
   RF::Verilated::commandArgs(argc, argv);
 
-  printf("Set values...................\n");
-
   #pragma omp parallel for
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
-      csbs[p][t] = new CSBMaster(rtlflows[p], dut, t);
-      
-      AXIResponder::connections dbbconn = {
-        .aw_awvalid = rtlflows[p].get(dut->nvdla_core2dbb_aw_awvalid, t),
-        .aw_awready = rtlflows[p].get(dut->nvdla_core2dbb_aw_awready, t),
-
-        .aw_awid = rtlflows[p].get(dut->nvdla_core2dbb_aw_awid, t),
-        .aw_awlen = rtlflows[p].get(dut->nvdla_core2dbb_aw_awlen, t),
-        .aw_awaddr = rtlflows[p].get(dut->nvdla_core2dbb_aw_awaddr, t),
-        
-        .w_wvalid = rtlflows[p].get(dut->nvdla_core2dbb_w_wvalid, t),
-        .w_wready = rtlflows[p].get(dut->nvdla_core2dbb_w_wready, t),
-        .w_wdata = AXI_WDATA_MKPTR *(rtlflows[p].get(dut->nvdla_core2dbb_w_wdata, t)),
-        .w_wstrb = rtlflows[p].get(dut->nvdla_core2dbb_w_wstrb, t),
-        .w_wlast = rtlflows[p].get(dut->nvdla_core2dbb_w_wlast, t),
-        
-        .b_bvalid = rtlflows[p].get(dut->nvdla_core2dbb_b_bvalid, t),
-        .b_bready = rtlflows[p].get(dut->nvdla_core2dbb_b_bready, t),
-        .b_bid = rtlflows[p].get(dut->nvdla_core2dbb_b_bid, t),
-
-        .ar_arvalid = rtlflows[p].get(dut->nvdla_core2dbb_ar_arvalid, t),
-        .ar_arready = rtlflows[p].get(dut->nvdla_core2dbb_ar_arready, t),
-        .ar_arid = rtlflows[p].get(dut->nvdla_core2dbb_ar_arid, t),
-        .ar_arlen = rtlflows[p].get(dut->nvdla_core2dbb_ar_arlen, t),
-        .ar_araddr = rtlflows[p].get(dut->nvdla_core2dbb_ar_araddr, t),
-      
-        .r_rvalid = rtlflows[p].get(dut->nvdla_core2dbb_r_rvalid, t),
-        .r_rready = rtlflows[p].get(dut->nvdla_core2dbb_r_rready, t),
-        .r_rid = rtlflows[p].get(dut->nvdla_core2dbb_r_rid, t),
-        .r_rlast = rtlflows[p].get(dut->nvdla_core2dbb_r_rlast, t),
-        .r_rdata = AXI_WDATA_MKPTR *(rtlflows[p].get(dut->nvdla_core2dbb_r_rdata, t)),
-      };
-      axi_dbbs[p][t] = new AXIResponder(dbbconn, "DBB");
-
-    #ifdef NVDLA_SECONDARY_MEMIF_ENABLE
-      AXIResponder::connections cvsramconn = {
-        .aw_awvalid = rtlflows[p].get(dut->nvdla_core2cvsram_aw_awvalid, t),
-        .aw_awready = rtlflows[p].get(dut->nvdla_core2cvsram_aw_awready, t),
-        .aw_awid = rtlflows[p].get(dut->nvdla_core2cvsram_aw_awid, t),
-        .aw_awlen = rtlflows[p].get(dut->nvdla_core2cvsram_aw_awlen, t),
-        .aw_awaddr = rtlflows[p].get(dut->nvdla_core2cvsram_aw_awaddr, t),
-        
-        .w_wvalid = rtlflows[p].get(dut->nvdla_core2cvsram_w_wvalid, t),
-        .w_wready = rtlflows[p].get(dut->nvdla_core2cvsram_w_wready, t),
-        .w_wdata = *(rtlflows[p].get(dut->nvdla_core2cvsram_w_wdata, t)),
-        .w_wstrb = rtlflows[p].get(dut->nvdla_core2cvsram_w_wstrb, t),
-        .w_wlast = rtlflows[p].get(dut->nvdla_core2cvsram_w_wlast, t),
-        
-        .b_bvalid = rtlflows[p].get(dut->nvdla_core2cvsram_b_bvalid, t),
-        .b_bready = rtlflows[p].get(dut->nvdla_core2cvsram_b_bready, t),
-        .b_bid = rtlflows[p].get(dut->nvdla_core2cvsram_b_bid, t),
-
-        .ar_arvalid = rtlflows[p].get(dut->nvdla_core2cvsram_ar_arvalid, t),
-        .ar_arready = rtlflows[p].get(dut->nvdla_core2cvsram_ar_arready, t),
-        .ar_arid = rtlflows[p].get(dut->nvdla_core2cvsram_ar_arid, t),
-        .ar_arlen = rtlflows[p].get(dut->nvdla_core2cvsram_ar_arlen, t),
-        .ar_araddr = rtlflows[p].get(dut->nvdla_core2cvsram_ar_araddr, t),
-      
-        .r_rvalid = rtlflows[p].get(dut->nvdla_core2cvsram_r_rvalid, t),
-        .r_rready = rtlflows[p].get(dut->nvdla_core2cvsram_r_rready, t),
-        .r_rid = rtlflows[p].get(dut->nvdla_core2cvsram_r_rid, t),
-        .r_rlast = rtlflows[p].get(dut->nvdla_core2cvsram_r_rlast, t),
-        .r_rdata = *(rtlflows[p].get(dut->nvdla_core2cvsram_r_rdata, t)),
-      };
-      axi_cvsrams[p][t] = new AXIResponder(cvsramconn, "CVSRAM");
-    #else
-      axi_cvsrams[p][t] = nullptr;
-    #endif
-
-    traces[p][t] = new TraceLoader(csbs[p][t], axi_dbbs[p][t], axi_cvsrams[p][t]);
-
+  for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+    rf_csb[t] = new CSBMaster(rtlflow, rf_dla, t);
     
-      *(rtlflows[p].get(dut->global_clk_ovr_on, t)) = 0;
-      *(rtlflows[p].get(dut->tmc2slcg_disable_clock_gating, t)) = 0;
-      *(rtlflows[p].get(dut->test_mode, t)) = 0;
-      *(rtlflows[p].get(dut->nvdla_pwrbus_ram_c_pd, t)) = 0;
-      *(rtlflows[p].get(dut->nvdla_pwrbus_ram_ma_pd, t)) = 0;
-      *(rtlflows[p].get(dut->nvdla_pwrbus_ram_mb_pd , t))= 0;
-      *(rtlflows[p].get(dut->nvdla_pwrbus_ram_p_pd, t)) = 0;
-      *(rtlflows[p].get(dut->nvdla_pwrbus_ram_o_pd, t)) = 0;
-      *(rtlflows[p].get(dut->nvdla_pwrbus_ram_a_pd, t)) = 0;
+    AXIResponder::connections rf_dbbconn = {
+      .aw_awvalid = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awvalid, t),
+      .aw_awready = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awready, t),
+
+      .aw_awid = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awid, t),
+      .aw_awlen = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awlen, t),
+      .aw_awaddr = rtlflow.get(rf_dla->nvdla_core2dbb_aw_awaddr, t),
+      
+      .w_wvalid = rtlflow.get(rf_dla->nvdla_core2dbb_w_wvalid, t),
+      .w_wready = rtlflow.get(rf_dla->nvdla_core2dbb_w_wready, t),
+      .w_wdata = AXI_WDATA_MKPTR *(rtlflow.get(rf_dla->nvdla_core2dbb_w_wdata, t)),
+      .w_wstrb = rtlflow.get(rf_dla->nvdla_core2dbb_w_wstrb, t),
+      .w_wlast = rtlflow.get(rf_dla->nvdla_core2dbb_w_wlast, t),
+      
+      .b_bvalid = rtlflow.get(rf_dla->nvdla_core2dbb_b_bvalid, t),
+      .b_bready = rtlflow.get(rf_dla->nvdla_core2dbb_b_bready, t),
+      .b_bid = rtlflow.get(rf_dla->nvdla_core2dbb_b_bid, t),
+
+      .ar_arvalid = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arvalid, t),
+      .ar_arready = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arready, t),
+      .ar_arid = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arid, t),
+      .ar_arlen = rtlflow.get(rf_dla->nvdla_core2dbb_ar_arlen, t),
+      .ar_araddr = rtlflow.get(rf_dla->nvdla_core2dbb_ar_araddr, t),
+    
+      .r_rvalid = rtlflow.get(rf_dla->nvdla_core2dbb_r_rvalid, t),
+      .r_rready = rtlflow.get(rf_dla->nvdla_core2dbb_r_rready, t),
+      .r_rid = rtlflow.get(rf_dla->nvdla_core2dbb_r_rid, t),
+      .r_rlast = rtlflow.get(rf_dla->nvdla_core2dbb_r_rlast, t),
+      .r_rdata = AXI_WDATA_MKPTR *(rtlflow.get(rf_dla->nvdla_core2dbb_r_rdata, t)),
+    };
+    rf_axi_dbb[t] = new AXIResponder(rf_dbbconn, "DBB");
+
+  #ifdef NVDLA_SECONDARY_MEMIF_ENABLE
+    AXIResponder::connections rf_cvsramconn = {
+      .aw_awvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awvalid, t),
+      .aw_awready = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awready, t),
+      .aw_awid = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awid, t),
+      .aw_awlen = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awlen, t),
+      .aw_awaddr = rtlflow.get(rf_dla->nvdla_core2cvsram_aw_awaddr, t),
+      
+      .w_wvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wvalid, t),
+      .w_wready = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wready, t),
+      .w_wdata = *(rtlflow.get(rf_dla->nvdla_core2cvsram_w_wdata, t)),
+      .w_wstrb = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wstrb, t),
+      .w_wlast = rtlflow.get(rf_dla->nvdla_core2cvsram_w_wlast, t),
+      
+      .b_bvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bvalid, t),
+      .b_bready = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bready, t),
+      .b_bid = rtlflow.get(rf_dla->nvdla_core2cvsram_b_bid, t),
+
+      .ar_arvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arvalid, t),
+      .ar_arready = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arready, t),
+      .ar_arid = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arid, t),
+      .ar_arlen = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_arlen, t),
+      .ar_araddr = rtlflow.get(rf_dla->nvdla_core2cvsram_ar_araddr, t),
+    
+      .r_rvalid = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rvalid, t),
+      .r_rready = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rready, t),
+      .r_rid = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rid, t),
+      .r_rlast = rtlflow.get(rf_dla->nvdla_core2cvsram_r_rlast, t),
+      .r_rdata = *(rtlflow.get(rf_dla->nvdla_core2cvsram_r_rdata, t)),
+    };
+    rf_axi_cvsram[t] = new AXIResponder(rf_cvsramconn, "CVSRAM");
+  #else
+    rf_axi_cvsram[t] = nullptr;
+  #endif
+
+  rf_trace[t] = new TraceLoader(rf_csb[t], rf_axi_dbb[t], rf_axi_cvsram[t]);
+
+  
+    *(rtlflow.get(rf_dla->global_clk_ovr_on, t)) = 0;
+    *(rtlflow.get(rf_dla->tmc2slcg_disable_clock_gating, t)) = 0;
+    *(rtlflow.get(rf_dla->test_mode, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_c_pd, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_ma_pd, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_mb_pd , t))= 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_p_pd, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_o_pd, t)) = 0;
+    *(rtlflow.get(rf_dla->nvdla_pwrbus_ram_a_pd, t)) = 0;
 
 
-      traces[p][t]->load(std::string(dir+"tb"+std::to_string(p * RF::THREADS + t)+".bin").c_str());
-    }
+    rf_trace[t]->load(std::string(dir+"tb"+std::to_string(t)+".bin").c_str());
   }
 
   printf("reset...\n");
-#pragma omp parallel for
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
-      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
-      *(rtlflows[p].get(dut->direct_reset_, t)) = 1;
-    }
-    rtlflows[p].run();
+  #pragma omp parallel for
+  for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+    //dla->dla_reset_rstn = 1;
+    //dla->direct_reset_ = 1;
+    *(rtlflow.get(rf_dla->dla_reset_rstn, t)) = 1;
+    *(rtlflow.get(rf_dla->direct_reset_, t)) = 1;
   }
+  //cudaMemset(rtlflow.get(rf_dla->dla_reset_rstn, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //cudaMemset(rtlflow.get(rf_dla->direct_reset_, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //tic = std::chrono::steady_clock::now();
+  rtlflow.run();
+  //toc = std::chrono::steady_clock::now();
+  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+  //dla->eval();
 
   for (int i = 0; i < 20; i++) {
 #pragma omp parallel for
-    for(size_t p = 0; p < NUM_PIPES; ++p) {
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
-      
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      }
-      rtlflows[p].run();
-      ticks++;
-  ////#if VM_TRACE
-      ////tfp->dump(ticks);
-  ////#endif
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
+      //dla->dla_core_clk = 1;
+      //dla->dla_csb_clk = 1;
     }
+  //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //tic = std::chrono::steady_clock::now();
+    rtlflow.run();
+  //toc = std::chrono::steady_clock::now();
+  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+  //dla->eval();
+    ticks++;
+//#if VM_TRACE
+    //tfp->dump(ticks);
+//#endif
+    
+#pragma omp parallel for
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
+      //dla->dla_core_clk = 0;
+      //dla->dla_csb_clk = 0;
+    }
+  //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //tic = std::chrono::steady_clock::now();
+    rtlflow.run();
+  //toc = std::chrono::steady_clock::now();
+  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+  //dla->eval();
+    ticks++;
+//#if VM_TRACE
+    //tfp->dump(ticks);
+//#endif
   }
 
-#pragma omp parallel for
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
-      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 0;
-      *(rtlflows[p].get(dut->direct_reset_, t)) = 0;
-    }
-    rtlflows[p].run();
+  #pragma omp parallel for
+  for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+    *(rtlflow.get(rf_dla->dla_reset_rstn, t)) = 0;
+    *(rtlflow.get(rf_dla->direct_reset_, t)) = 0;
+    //dla->dla_reset_rstn = 0;
+    //dla->direct_reset_ = 0;
   }
+  //cudaMemset(rtlflow.get(rf_dla->dla_reset_rstn, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //cudaMemset(rtlflow.get(rf_dla->direct_reset_, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //tic = std::chrono::steady_clock::now();
+  rtlflow.run();
+  //toc = std::chrono::steady_clock::now();
+  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+  //dla->eval();
   
   for (int i = 0; i < 20; i++) {
-    for(size_t p = 0; p < NUM_PIPES; ++p) {
 #pragma omp parallel for
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
-      
-#pragma omp parallel for
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
+      //dla->dla_core_clk = 1;
+      //dla->dla_csb_clk = 1;
     }
+    //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+    //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+    //tic = std::chrono::steady_clock::now();
+    rtlflow.run();
+    //toc = std::chrono::steady_clock::now();
+    //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+  //dla->eval();
+    ticks++;
+//#if VM_TRACE
+    //tfp->dump(ticks);
+//#endif
+    
+#pragma omp parallel for
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
+      //dla->dla_core_clk = 0;
+      //dla->dla_csb_clk = 0;
+    }
+    //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+    //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //tic = std::chrono::steady_clock::now();
+  rtlflow.run();
+  //toc = std::chrono::steady_clock::now();
+  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+  //dla->eval();
+    ticks++;
+//#if VM_TRACE
+    //tfp->dump(ticks);
+//#endif
   }
   
 #pragma omp parallel for
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
-      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
-      *(rtlflows[p].get(dut->direct_reset_, t)) = 1;
-    }
+  for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+    *(rtlflow.get(rf_dla->dla_reset_rstn, t)) = 1;
+    *(rtlflow.get(rf_dla->direct_reset_, t)) = 1;
+    //dla->dla_reset_rstn = 1;
+    //dla->direct_reset_ = 1;
   }
+  //cudaMemset(rtlflow.get(rf_dla->dla_reset_rstn, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //cudaMemset(rtlflow.get(rf_dla->direct_reset_, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
   
   printf("letting buffers clear after reset...\n");
   for (int i = 0; i < 8192; i++) {
 #pragma omp parallel for
-    for(size_t p = 0; p < NUM_PIPES; ++p) {
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
-      
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
+      //dla->dla_core_clk = 1;
+      //dla->dla_csb_clk = 1;
     }
+    //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+    //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //tic = std::chrono::steady_clock::now();
+  rtlflow.run();
+  //toc = std::chrono::steady_clock::now();
+  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+  //dla->eval();
+    ticks++;
+//#if VM_TRACE
+    //tfp->dump(ticks);
+//#endif
+    
+#pragma omp parallel for
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
+      //dla->dla_core_clk = 0;
+      //dla->dla_csb_clk = 0;
+    }
+  //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+  //tic = std::chrono::steady_clock::now();
+    rtlflow.run();
+  //toc = std::chrono::steady_clock::now();
+  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+  //dla->eval();
+    ticks++;
+//#if VM_TRACE
+    //tfp->dump(ticks);
+//#endif
   }
 
   printf("running trace...\n");
+  //uint32_t quiesc_timer = 200;
+  int rf_waiting = 0;
 
-  tf::Executor executor;
-  tf::Taskflow taskflow;
-  std::vector<tf::Taskflow> one_cycle_taskflows(NUM_PIPES);
-  std::vector<tf::Pipe<>> pipes;
-  tf::ScalablePipeline<decltype(pipes)::iterator> spl;
-  std::vector<int> waitings(NUM_PIPES, 0);
+  //bool alldone{false};
+  tic = std::chrono::steady_clock::now();
+  for(size_t c = 0; c < CYCLES; ++c) {
+    #pragma omp parallel for
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      //if(!rf_csb[t]->done()) {
+        //alldone = false;
+        int rf_extevent;
+        int extevent;
 
-  // Ver.2 ============================================================================================
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
+        rf_extevent = rf_csb[t]->rf_eval(rf_waiting);
+        //alldone &= rf_csb[t]->done();
 
-    auto set_t = one_cycle_taskflows[p].for_each_index(0, int(RF::THREADS), 1, [&, p](int t) mutable {
-      int extevent;
+        if (rf_extevent == TraceLoader::TRACE_AXIEVENT)
+          rf_trace[t]->axievent();
+        else if (rf_extevent == TraceLoader::TRACE_WFI) {
+          rf_waiting = 1;
+          printf("(%lu) waiting for interrupt...\n", ticks);
+        } else if (rf_extevent & TraceLoader::TRACE_SYNCPT_MASK) {
+          rf_trace[t]->syncpt(rf_extevent);
+        }
 
-      extevent = csbs[p][t]->eval(waitings[p]);
+        if (rf_waiting && *(rtlflow.get(rf_dla->dla_intr, t))) {
+          printf("(%lu) interrupt!\n", ticks);
+          rf_waiting = 0;
+        }
 
-      if (extevent == TraceLoader::TRACE_AXIEVENT)
-        traces[p][t]->axievent();
-      else if (extevent == TraceLoader::TRACE_WFI) {
-        waitings[p] = 1;
-        printf("(%lu) waiting for interrupt...\n", ticks);
-      } else if (extevent & TraceLoader::TRACE_SYNCPT_MASK) {
-        traces[p][t]->syncpt(extevent);
-      }
+        rf_axi_dbb[t]->eval();
 
-      if (waitings[p] && *(rtlflows[p].get(dut->dla_intr, t))) {
-        printf("(%lu) interrupt!\n", ticks);
-        waitings[p] = 0;
-      }
+        if (rf_axi_cvsram[t] != nullptr)
+          rf_axi_cvsram[t]->eval();
+      //}
+      //else {
+        //rtlflow.done[t] = true;
+      //}
+    }
 
-      axi_dbbs[p][t]->eval();
+    #pragma omp parallel for
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
+      //dla->dla_core_clk = 1;
+      //dla->dla_csb_clk = 1;
+    }
 
-      if (axi_cvsrams[p][t] != nullptr) {
-        axi_cvsrams[p][t]->eval();
-      }
+    //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+    //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
+    rtlflow.run();
+    //dla->eval();
+    ticks++;
 
-    }).name("set");
+    #pragma omp parallel for
+    for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+      *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
+      *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
+      //dla->dla_core_clk = 0;
+      //dla->dla_csb_clk = 0;
+    }
+    //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
+    //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
 
-    auto set1_t = one_cycle_taskflows[p].for_each_index(0, int(RF::THREADS), 1, [&, p](int t) mutable {
-      *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-      *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-    }).name("set_1");
-
-
-    auto set0_t = one_cycle_taskflows[p].for_each_index(0, int(RF::THREADS), 1, [&, p](int t) mutable {
-      *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-      *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-    }).name("set_0");
-
-    auto&& sim_graph = rtlflows[p].taskflow();
-    auto sim1_t = one_cycle_taskflows[p].composed_of(sim_graph).name("sim_graph");
-    auto sim2_t = one_cycle_taskflows[p].composed_of(sim_graph).name("sim_graph");
-
-    set_t.precede(set1_t);
-    set1_t.precede(sim1_t);
-    sim1_t.precede(set0_t);
-    set0_t.precede(sim2_t);
+    rtlflow.run();
+    //dla->eval();
+    ticks++;
   }
+  toc = std::chrono::steady_clock::now();
+  eval_duration +=  std::chrono::duration_cast<std::chrono::seconds>(toc - tic).count();
 
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    pipes.emplace_back(tf::PipeType::SERIAL, [&](tf::Pipeflow& pf) mutable {
-      switch(pf.pipe()) {
-        case 0:
-          if(pf.token() == NUM_CYCLES) {
-            ticks++;
-            pf.stop();
-            return;
-          }
-          executor.run(one_cycle_taskflows[pf.pipe()]).wait();
-
-        break;
-      
-        default: 
-          executor.run(one_cycle_taskflows[pf.pipe()]).wait();
-        break;
-      }
-    });
-  }
-
-  spl.reset(NUM_PIPES, pipes.begin(), pipes.end());
-  auto spl_t = taskflow.composed_of(spl).name("pipeline");
-  for(size_t c = 0; c < NUM_CYCLES; ++c) {
-    executor.run(taskflow).wait();
-  }
-
-  // ============================================================================================
-
-  // Ver.1 ============================================================================================
-  //auto one_cycle_t = [&](size_t p){
-    //int waiting = 0;
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
-      //int extevent;
-
-      //extevent = csbs[p][t]->eval(waiting);
-
-      //if (extevent == TraceLoader::TRACE_AXIEVENT)
-        //traces[p][t]->axievent();
-      //else if (extevent == TraceLoader::TRACE_WFI) {
-        //waiting = 1;
-        //printf("(%lu) waiting for interrupt...\n", ticks);
-      //} else if (extevent & TraceLoader::TRACE_SYNCPT_MASK) {
-        //traces[p][t]->syncpt(extevent);
-      //}
-
-      //if (waiting && *(rtlflows[p].get(dut->dla_intr, t))) {
-        //printf("(%lu) interrupt!\n", ticks);
-        //waiting = 0;
-      //}
-
-      //axi_dbbs[p][t]->eval();
-
-      //if (axi_cvsrams[p][t] != nullptr) {
-        //axi_cvsrams[p][t]->eval();
-      //}
-    //}
-
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
-      //*(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-      //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-    //}
-
-    //rtlflows[p].run();
-    //ticks++;
-
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
-      //*(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-      //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-    //}
-
-    //rtlflows[p].run();
-    //ticks++;
-  //};
-
-  //for(size_t p = 0; p < NUM_PIPES; ++p) {
-    //pipes.emplace_back(tf::PipeType::SERIAL, [=](tf::Pipeflow& pf) mutable {
-      //switch(pf.pipe()) {
-        //case 0:
-          //if(pf.token() == NUM_CYCLES) {
-            //pf.stop();
-            //return;
-          //}
-          //one_cycle_t(pf.pipe());
-
-        //break;
-      
-        //default: 
-          //one_cycle_t(pf.pipe());
-        //break;
-      //}
-    //});
-  //}
-
-  //spl.reset(NUM_PIPES, pipes.begin(), pipes.end());
-  //auto spl_t = taskflow.composed_of(spl).name("pipeline");
-  //executor.run(taskflow).wait();
-
-  // ============================================================================================
-
-  ////bool alldone{false};
-  //tic = std::chrono::steady_clock::now();
-  //toc = std::chrono::steady_clock::now();
-  //run_duration +=  std::chrono::duration_cast<std::chrono::seconds>(toc - tic).count();
-
-    ////check1(dla);
-      ////std::cout<<  rtlflow._csignals[NUM_TESTBENCHES * 3831] << "\n";
-           ////& ((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3719])
-               ////? (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])
-               ////: (((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3902]) 
-                   ////& (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])) 
-                  ////& (~ (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3901])))));
+    //check1(dla);
+      //std::cout<<  rtlflow._csignals[NUM_TESTBENCHES * 3831] << "\n";
+           //& ((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3719])
+               //? (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])
+               //: (((IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3902]) 
+                   //& (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3910])) 
+                  //& (~ (IData)(_csignals[(blockDim.x * blockIdx.x + threadIdx.x) + NUM_TESTBENCHES * 3901])))));
 
   printf("done at %lu ticks\n", ticks);
 
   #pragma omp parallel for
-  for(size_t p = 0; p < NUM_PIPES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
-      if (!traces[p][t]->test_passed()) {
-        printf("*** FAIL: test failed due to output mismatch\n");
-        //return 1;
-      }
-      
-      if (!csbs[p][t]->test_passed()) {
-        printf("*** FAIL: test failed due to CSB read mismatch\n");
-        //return 2;
-      }
-
-      //printf("*** PASS\n");
+  for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
+    if (!rf_trace[t]->test_passed()) {
+      printf("*** FAIL: test failed due to output mismatch\n");
+      //return 1;
     }
+    
+    if (!rf_csb[t]->test_passed()) {
+      printf("*** FAIL: test failed due to CSB read mismatch\n");
+      //return 2;
+    }
+
+    //printf("*** PASS\n");
   }
 
-  //total_toc = std::chrono::steady_clock::now();
-  //total_duration +=  std::chrono::duration_cast<std::chrono::seconds>(total_toc - total_tic).count();
-  //printf("runuation duration: %lld\n", run_duration);
-  //printf("total duration: %lld\n", total_duration);
+  total_toc = std::chrono::steady_clock::now();
+  total_duration +=  std::chrono::duration_cast<std::chrono::seconds>(total_toc - total_tic).count();
+  printf("evaluation duration: %lld\n", eval_duration);
+  printf("total duration: %lld\n", total_duration);
   
-  //return 0;
+  return 0;
 }
