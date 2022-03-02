@@ -57,12 +57,6 @@ uint64_t ticks = 0;
 
 //RF::RTLflow rtlflow(GPU_THREADS);
 //RF::RTLflow& RF::VNV_nvdla::_rtlflow = rtlflow;
-std::chrono::time_point<std::chrono::steady_clock> total_tic;
-std::chrono::time_point<std::chrono::steady_clock> total_toc;
-std::chrono::time_point<std::chrono::steady_clock> tic;
-std::chrono::time_point<std::chrono::steady_clock> toc;
-long long int eval_duration{0};
-long long int total_duration{0};
 //void check1(VNV_nvdla* vlTOPp);
 //void check2(VNV_nvdla* vlTOPp);
 //void check3(VNV_nvdla* vlTOPp);
@@ -980,6 +974,16 @@ public:
 };
 
 int main(int argc, const char **argv, char **env) {
+
+  // profiling =======================================================================
+  std::chrono::time_point<std::chrono::steady_clock> total_tic;
+  std::chrono::time_point<std::chrono::steady_clock> total_toc;
+  std::chrono::time_point<std::chrono::steady_clock> tic;
+  std::chrono::time_point<std::chrono::steady_clock> toc;
+  long int total_duration{0};
+  long int eval_duration{0};
+  // end of profiling =======================================================================
+
   total_tic = std::chrono::steady_clock::now();
   //if (argc != 4) {
     //fprintf(stderr, "nvdla requires exactly 3 parameters\n");
@@ -997,7 +1001,20 @@ int main(int argc, const char **argv, char **env) {
   std::string dir{argv[3]}; 
 
   // In this version, we simulate all testbenches at a time.
-  assert(NUM_TESTBENCHES==GPU_THREADS);
+  assert(NUM_TESTBENCHES == RF::THREADS);
+
+  // profiling =======================================================================
+  //std::chrono::time_point<std::chrono::steady_clock> total_tic;
+  //std::chrono::time_point<std::chrono::steady_clock> total_toc;
+  //long long int total_duration{0};
+
+  std::chrono::time_point<std::chrono::steady_clock> sim_tic;
+  std::chrono::time_point<std::chrono::steady_clock> sim_toc;
+  std::chrono::time_point<std::chrono::steady_clock> set_tic;
+  std::chrono::time_point<std::chrono::steady_clock> set_toc;
+  std::chrono::microseconds sim_duration(0);
+  std::chrono::microseconds set_duration(0);
+  // end of profiling =======================================================================
 
   std::vector<TraceLoader*> rf_trace(NUM_TESTBENCHES, nullptr);
   std::vector<CSBMaster*> rf_csb(NUM_TESTBENCHES, nullptr);
@@ -1263,7 +1280,8 @@ int main(int argc, const char **argv, char **env) {
   //bool alldone{false};
   tic = std::chrono::steady_clock::now();
   for(size_t c = 0; c < CYCLES; ++c) {
-    #pragma omp parallel for
+    set_tic = std::chrono::steady_clock::now();
+    //#pragma omp parallel for
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       //if(!rf_csb[t]->done()) {
         //alldone = false;
@@ -1297,31 +1315,42 @@ int main(int argc, const char **argv, char **env) {
       //}
     }
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 1;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 1;
       //dla->dla_core_clk = 1;
       //dla->dla_csb_clk = 1;
     }
+    set_toc = std::chrono::steady_clock::now();
+    set_duration += std::chrono::duration_cast<std::chrono::microseconds>(set_toc - set_tic);
 
+    sim_tic = std::chrono::steady_clock::now();
     //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
     //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 1, sizeof(unsigned char) * NUM_TESTBENCHES);
     rtlflow.run();
+    sim_toc = std::chrono::steady_clock::now();
+    sim_duration += std::chrono::duration_cast<std::chrono::microseconds>(sim_toc - sim_tic);
     //dla->eval();
     ticks++;
 
-    #pragma omp parallel for
+    set_tic = std::chrono::steady_clock::now();
+  //#pragma omp parallel for
     for(size_t t = 0; t < NUM_TESTBENCHES; ++t) {
       *(rtlflow.get(rf_dla->dla_core_clk, t)) = 0;
       *(rtlflow.get(rf_dla->dla_csb_clk, t)) = 0;
       //dla->dla_core_clk = 0;
       //dla->dla_csb_clk = 0;
     }
+    set_toc = std::chrono::steady_clock::now();
+    set_duration += std::chrono::duration_cast<std::chrono::microseconds>(set_toc - set_tic);
     //cudaMemset(rtlflow.get(rf_dla->dla_core_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
     //cudaMemset(rtlflow.get(rf_dla->dla_csb_clk, 0), 0, sizeof(unsigned char) * NUM_TESTBENCHES);
 
+    sim_tic = std::chrono::steady_clock::now();
     rtlflow.run();
+    sim_toc = std::chrono::steady_clock::now();
+    sim_duration += std::chrono::duration_cast<std::chrono::microseconds>(sim_toc - sim_tic);
     //dla->eval();
     ticks++;
   }
@@ -1355,8 +1384,11 @@ int main(int argc, const char **argv, char **env) {
 
   total_toc = std::chrono::steady_clock::now();
   total_duration +=  std::chrono::duration_cast<std::chrono::seconds>(total_toc - total_tic).count();
-  printf("evaluation duration: %lld\n", eval_duration);
-  printf("total duration: %lld\n", total_duration);
+
+  printf("set duration: %lds\n", std::chrono::duration_cast<std::chrono::seconds>(set_duration).count());
+  printf("sim duration: %lds\n", std::chrono::duration_cast<std::chrono::seconds>(sim_duration).count());
+  printf("evaluation duration: %ld\n", eval_duration);
+  printf("total duration: %ld\n", total_duration);
   
   return 0;
 }

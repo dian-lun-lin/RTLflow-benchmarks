@@ -9,7 +9,7 @@
 DEPTH = ../..
 include $(DEPTH)/tools/make/common.make
 
-default: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_$(GPU_THREADS)/VNV_nvdla
+default: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_thr$(GPU_THREADS)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla
 
 RTLFLOW_PARAMS ?= -CFLAGS "-O2 -DGPU_THREADS=$(GPU_THREADS)" 
 # Perhaps you need to trace?
@@ -21,14 +21,14 @@ RTLFLOW_PARAMS ?= -CFLAGS "-O2 -DGPU_THREADS=$(GPU_THREADS)"
 
 # We end up hardcoding this, because the .f file applies only to nv_full,
 # living in outdir, right now.  Otherwise, you're on your own...
-$(DEPTH)/outdir/$(PROJECT)/rtlflow_$(GPU_THREADS)/VNV_nvdla.mk: rtlflow_$(PROJECT).f ../../outdir/$(PROJECT)/vmod # and a lot of RTL...
+$(DEPTH)/outdir/$(PROJECT)/rtlflow_thr$(GPU_THREADS)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla.mk: rtlflow_$(PROJECT).f ../../outdir/$(PROJECT)/vmod # and a lot of RTL...
 	#$(VERILATOR) $(VERILATOR_PARAMS) --cc --threads 4 --exe nvdla.cu -f verilator_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/verilator_rtlflow/ --compiler clang --output-split 250000000
-	$(RTLFLOW) $(RTLFLOW_PARAMS) --stats --threads-max-mtasks 655360 --cc --threads 32 --exe nvdla.cu -f rtlflow_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/rtlflow_$(GPU_THREADS)/ --output-split 250000000
+	$(RTLFLOW) $(RTLFLOW_PARAMS) --stats --threads-max-mtasks 65536 --cc --threads $(VERILATOR_PARTITION_SIZE) --exe nvdla.cu -f rtlflow_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/rtlflow_thr$(GPU_THREADS)_vps$(VERILATOR_PARTITION_SIZE)/ --output-split 250000000
 
-$(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_$(GPU_THREADS)/VNV_nvdla: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_$(GPU_THREADS)/VNV_nvdla.mk nvdla.cu
+$(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_thr$(GPU_THREADS)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_thr$(GPU_THREADS)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla.mk nvdla.cu
 	#rm -f $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator_rtlflow/nvdla.cu
-	cp nvdla.cu $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_$(GPU_THREADS)/nvdla.cu
-	make GPU_THREADS=$(GPU_THREADS) VM_PARALLEL_BUILDS=1 -j32 -C $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_$(GPU_THREADS) -f VNV_nvdla.mk $(VMAKE_PARAMS)
+	cp nvdla.cu $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_thr$(GPU_THREADS)_vps$(VERILATOR_PARTITION_SIZE)/nvdla.cu
+	make GPU_THREADS=$(GPU_THREADS) VM_PARALLEL_BUILDS=1 -j32 -C $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_thr$(GPU_THREADS)_vps$(VERILATOR_PARTITION_SIZE) -f VNV_nvdla.mk $(VMAKE_PARAMS)
 
 #$(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator_rtlflow/test/%/trace.bin: $(DEPTH)/verif/tests/trace_tests/$(PROJECT)/%/ new_trace_to_verilator.py
 	#rm -rf $@

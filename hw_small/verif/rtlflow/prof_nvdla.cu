@@ -1,3 +1,4 @@
+
 /* nvdla.cpp
  * Driver for Verilator testbench
  * NVDLA Open Source Project
@@ -986,6 +987,12 @@ int main(int argc, const char **argv, char **env) {
   std::string dir{argv[3]}; 
   size_t NUM_LINES = NUM_TESTBENCHES / RF::THREADS;
   size_t NUM_PIPES = NUM_CYCLES;
+  printf("Number of testbenches: %zu\n", NUM_TESTBENCHES);
+  printf("Number of cycles: %zu\n", NUM_CYCLES);
+  printf("Number of GPU threads: %zu\n", RF::THREADS);
+  printf("Number of pipes: %zu\n", NUM_CYCLES);
+  printf("Number of lines: %zu\n", NUM_LINES);
+  printf("Directory of testbenches: %s\n", dir.c_str());
 
   // profiling =======================================================================
   //std::chrono::time_point<std::chrono::steady_clock> total_tic;
@@ -1112,108 +1119,108 @@ int main(int argc, const char **argv, char **env) {
     }
   }
 
-  printf("reset...\n");
-  #pragma omp parallel for
-  for(size_t p = 0; p < NUM_LINES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
-      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
-      *(rtlflows[p].get(dut->direct_reset_, t)) = 1;
-    }
-    rtlflows[p].run();
-  }
+  //printf("reset...\n");
+  //#pragma omp parallel for
+  //for(size_t p = 0; p < NUM_LINES; ++p) {
+    //for(size_t t = 0; t < RF::THREADS; ++t) {
+      //*(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
+      //*(rtlflows[p].get(dut->direct_reset_, t)) = 1;
+    //}
+    //rtlflows[p].run();
+  //}
 
-  for (int i = 0; i < 20; i++) {
-#pragma omp parallel for
-    for(size_t p = 0; p < NUM_LINES; ++p) {
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
-      
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      }
-      rtlflows[p].run();
-      ticks++;
+  //for (int i = 0; i < 20; i++) {
+//#pragma omp parallel for
+    //for(size_t p = 0; p < NUM_LINES; ++p) {
+      //for(size_t t = 0; t < RF::THREADS; ++t) {
+        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
+        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
+      //}
+      //rtlflows[p].run();
+      //ticks++;
   ////#if VM_TRACE
       ////tfp->dump(ticks);
   ////#endif
-    }
-  }
+      
+      //for(size_t t = 0; t < RF::THREADS; ++t) {
+        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
+        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
+      //}
+      //rtlflows[p].run();
+      //ticks++;
+  //////#if VM_TRACE
+      //////tfp->dump(ticks);
+  //////#endif
+    //}
+  //}
 
-#pragma omp parallel for
-  for(size_t p = 0; p < NUM_LINES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
-      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 0;
-      *(rtlflows[p].get(dut->direct_reset_, t)) = 0;
-    }
-    rtlflows[p].run();
-  }
+//#pragma omp parallel for
+  //for(size_t p = 0; p < NUM_LINES; ++p) {
+    //for(size_t t = 0; t < RF::THREADS; ++t) {
+      //*(rtlflows[p].get(dut->dla_reset_rstn, t)) = 0;
+      //*(rtlflows[p].get(dut->direct_reset_, t)) = 0;
+    //}
+    //rtlflows[p].run();
+  //}
   
-  for (int i = 0; i < 20; i++) {
-#pragma omp parallel for
-    for(size_t p = 0; p < NUM_LINES; ++p) {
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
+  //for (int i = 0; i < 20; i++) {
+//#pragma omp parallel for
+    //for(size_t p = 0; p < NUM_LINES; ++p) {
+      //for(size_t t = 0; t < RF::THREADS; ++t) {
+        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
+        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
+      //}
+      //rtlflows[p].run();
+      //ticks++;
+  ////#if VM_TRACE
+      ////tfp->dump(ticks);
+  ////#endif
       
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
-    }
-  }
+      //for(size_t t = 0; t < RF::THREADS; ++t) {
+        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
+        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
+      //}
+      //rtlflows[p].run();
+      //ticks++;
+  ////#if VM_TRACE
+      ////tfp->dump(ticks);
+  ////#endif
+    //}
+  //}
   
-#pragma omp parallel for collapse(2)
-  for(size_t p = 0; p < NUM_LINES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
-      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
-      *(rtlflows[p].get(dut->direct_reset_, t)) = 1;
-    }
-  }
+//#pragma omp parallel for collapse(2)
+  //for(size_t p = 0; p < NUM_LINES; ++p) {
+    //for(size_t t = 0; t < RF::THREADS; ++t) {
+      //*(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
+      //*(rtlflows[p].get(dut->direct_reset_, t)) = 1;
+    //}
+  //}
   
-  printf("letting buffers clear after reset...\n");
-  for (int i = 0; i < 8192; i++) {
-#pragma omp parallel for
-    for(size_t p = 0; p < NUM_LINES; ++p) {
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
+  //printf("letting buffers clear after reset...\n");
+  //for (int i = 0; i < 8192; i++) {
+//#pragma omp parallel for
+    //for(size_t p = 0; p < NUM_LINES; ++p) {
+      //for(size_t t = 0; t < RF::THREADS; ++t) {
+        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
+        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
+      //}
+      //rtlflows[p].run();
+      //ticks++;
+  ////#if VM_TRACE
+      ////tfp->dump(ticks);
+  ////#endif
       
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      }
-      rtlflows[p].run();
-      ticks++;
-  //#if VM_TRACE
-      //tfp->dump(ticks);
-  //#endif
-    }
-  }
+      //for(size_t t = 0; t < RF::THREADS; ++t) {
+        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
+        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
+      //}
+      //rtlflows[p].run();
+      //ticks++;
+  ////#if VM_TRACE
+      ////tfp->dump(ticks);
+  ////#endif
+    //}
+  //}
 
   printf("running trace...\n");
 
@@ -1285,12 +1292,12 @@ int main(int argc, const char **argv, char **env) {
       sim_tocs[l] = std::chrono::steady_clock::now();
       sim_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(sim_tocs[l] - sim_tics[l]);
     }).name("sim_graph");
-    auto sim2_t = one_cycle_taskflows[l].emplace([&, l](){ 
-      sim_tics[l] = std::chrono::steady_clock::now();
-      rtlflows[l].run(); 
-      sim_tocs[l] = std::chrono::steady_clock::now();
-      sim_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(sim_tocs[l] - sim_tics[l]);
-    }).name("sim_graph");
+    //auto sim2_t = one_cycle_taskflows[l].emplace([&, l](){ 
+      //sim_tics[l] = std::chrono::steady_clock::now();
+      //rtlflows[l].run(); 
+      //sim_tocs[l] = std::chrono::steady_clock::now();
+      //sim_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(sim_tocs[l] - sim_tics[l]);
+    //}).name("sim_graph");
     //auto sim1_t = one_cycle_taskflows[p].composed_of(sim_graph).name("sim_graph");
     //auto sim2_t = one_cycle_taskflows[p].composed_of(sim_graph).name("sim_graph");
 
@@ -1298,7 +1305,7 @@ int main(int argc, const char **argv, char **env) {
       set_t.precede(set1_t);
       set1_t.precede(sim1_t);
       sim1_t.precede(set0_t);
-      set0_t.precede(sim2_t);
+      //set0_t.precede(sim2_t);
     //}
     //else if (l % 3 == 1){
       //sim1_t.precede(set0_t);
@@ -1449,21 +1456,11 @@ int main(int argc, const char **argv, char **env) {
     //}
   //}
   eval_duration +=  std::chrono::duration_cast<std::chrono::seconds>(toc - tic).count();
-
-  std::ofstream out("./result.out", std::ios_base::app);
-  out << "Number of testbenches:" << NUM_TESTBENCHES << "\n";
-  out << "Number of cycles:"      << NUM_CYCLES      << "\n";
-  out << "Number of pipes: "      << NUM_CYCLES      << "\n";
-  out << "Number of lines: "      << NUM_LINES       << "\n";
-  out << "Batch size:"            << RF::THREADS     << "\n";
-  //printf("Directory of testbenches: %s\n", dir.c_str());
   for(size_t l = 0; l < NUM_LINES; ++l) {
-    out << "set duration for line " << l << ": " << std::chrono::duration_cast<std::chrono::seconds>(set_durations[l]).count() << "s\n";
-    out << "sim duration for line " << l << ": " << std::chrono::duration_cast<std::chrono::seconds>(sim_durations[l]).count() << "s\n";
+    printf("set duration for line %zi: %lds\n", l, std::chrono::duration_cast<std::chrono::seconds>(set_durations[l]).count());
+    printf("sim duration for line %zi: %lds\n", l, std::chrono::duration_cast<std::chrono::seconds>(sim_durations[l]).count());
   }
-  out << "total eval duration: " << eval_duration << "s\n";
-  out << "======================================================\n";
-  out.close();
+  printf("total eval duration: %lds\n", eval_duration);
 
   //total_toc = std::chrono::steady_clock::now();
   //total_duration +=  std::chrono::duration_cast<std::chrono::seconds>(total_toc - total_tic).count();
