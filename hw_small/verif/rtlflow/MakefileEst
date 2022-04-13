@@ -9,8 +9,7 @@
 DEPTH = ../..
 include $(DEPTH)/tools/make/common.make
 
-default: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla
-estimator: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/estimator
+default: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/estimator
 
 RTLFLOW_PARAMS ?= -CFLAGS "-O2 -DBATCH=$(BATCH)" 
 # Perhaps you need to trace?
@@ -26,23 +25,15 @@ RTLFLOW_PARAMS ?= -CFLAGS "-O2 -DBATCH=$(BATCH)"
 	##$(VERILATOR) $(VERILATOR_PARAMS) --cc --threads 4 --exe nvdla.cu -f verilator_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/verilator_rtlflow/ --compiler clang --output-split 250000000
 	#$(RTLFLOW) $(RTLFLOW_PARAMS) --stats --threads-max-mtasks 65536 --cc --threads $(VERILATOR_PARTITION_SIZE) --exe nvdla.cu -f rtlflow_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/rtlflow_thr$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/ --output-split 250000000
 
-$(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla.mk nvdla.cu
-	#rm -f $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator_rtlflow/nvdla.cu
-	cp nvdla.cu $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/nvdla.cu
-	make BATCH=$(BATCH) VM_PARALLEL_BUILDS=1 -j64 -C $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE) -f VNV_nvdla.mk $(VMAKE_PARAMS)
 
 $(DEPTH)/outdir/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla.mk: rtlflow_$(PROJECT).f ../../outdir/$(PROJECT)/vmod # and a lot of RTL...
 	#$(VERILATOR) $(VERILATOR_PARAMS) --cc --threads 4 --exe nvdla.cu -f verilator_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/verilator_rtlflow/ --compiler clang --output-split 250000000
-	$(RTLFLOW) $(RTLFLOW_PARAMS) --stats --threads-max-mtasks 65536 --cc --threads $(VERILATOR_PARTITION_SIZE) --exe nvdla.cu -f rtlflow_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/ --output-split 20000
+	$(RTLFLOW) $(RTLFLOW_PARAMS) --stats --threads-max-mtasks 65536 --cc --threads $(VERILATOR_PARTITION_SIZE) --exe estimator.cu -o estimator -f rtlflow_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/ --output-split 20000
 
-$(DEPTH)/outdir/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/estimator.mk: rtlflow_$(PROJECT).f ../../outdir/$(PROJECT)/vmod # and a lot of RTL...
-	#$(VERILATOR) $(VERILATOR_PARAMS) --cc --threads 4 --exe nvdla.cu -f verilator_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/verilator_rtlflow/ --compiler clang --output-split 250000000
-	$(RTLFLOW) $(RTLFLOW_PARAMS) --stats --threads-max-mtasks 65536 --cc --threads $(VERILATOR_PARTITION_SIZE) --prefix estimator --exe estimator.cu -o estimator -f rtlflow_$(PROJECT).f --Mdir ../../outdir/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/ --output-split 20000
-
-$(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/estimator: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/estimator.mk estimator.cu
+$(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/estimator: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/VNV_nvdla.mk estimator.cu
 	#rm -f $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator_rtlflow/nvdla.cu
 	cp estimator.cu $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/estimator.cu
-	make BATCH=$(BATCH) VM_PARALLEL_BUILDS=1 -j64 -C $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE) -f estimator.mk $(VMAKE_PARAMS)
+	make BATCH=$(BATCH) VM_PARALLEL_BUILDS=1 -j64 -C $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE) -f VNV_nvdla.mk $(VMAKE_PARAMS)
 	cp $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_bs$(BATCH)_vps$(VERILATOR_PARTITION_SIZE)/estimator estimator
 
 #$(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator_rtlflow/test/%/trace.bin: $(DEPTH)/verif/tests/trace_tests/$(PROJECT)/%/ new_trace_to_verilator.py

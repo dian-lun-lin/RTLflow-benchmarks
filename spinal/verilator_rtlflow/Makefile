@@ -6,17 +6,17 @@ all: tb
 # Main
 #============================================================
 tb: verilator
-	nvcc -arch=sm_80 -std=c++17 -O2 -DGPU_THREADS=$(NUM_TESTBENCHES) -I$(VERILATOR_ROOT)/include/ -Xcompiler -fopenmp, --extended-lambda -DVL_THREADED=2 -I ../../taskflow/ -I$(VERILATOR_ROOT)/include/vltstd -Iobj_dir_rtlflow \
+	nvcc -arch=sm_75 -std=c++17 -O2 -DBATCH=$(BATCH) -I$(VERILATOR_ROOT)/include/ -Xcompiler -fopenmp, --extended-lambda -DVL_THREADED=2 -I ../../taskflow/ -I$(VERILATOR_ROOT)/include/vltstd -Iobj_dir_rtlflow \
 			$(VERILATOR_ROOT)/include/rf_verilated.cu \
       ./obj_dir_rtlflow/VExampleTop__ALL.a \
 			 main.cu \
 			 -lgomp \
 			-o tb
 
-.PHONY: verilator
-verilator: 
+.PHONY: rtlflow
+rtlflow: 
 	rm -fr obj_dir_rtlflow
-	verilator --stats --threads 2 -CFLAGS "-O2 -DGPU_THREADS=$(NUM_TESTBENCHES)" --Mdir obj_dir_rtlflow -Wno-fatal -cc  $(SRC_FILE)
+	rtlflow --stats --threads 2 -CFLAGS "-O2 -DBATCH=$(BATCH)" --Mdir obj_dir_rtlflow -Wno-fatal -cc  $(SRC_FILE)
 	cd obj_dir_rtlflow && make -f VExampleTop.mk
 	cp ../spinal/*.bin .
 

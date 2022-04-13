@@ -1,4 +1,3 @@
-
 /* nvdla.cpp
  * Driver for Verilator testbench
  * NVDLA Open Source Project
@@ -41,6 +40,115 @@ void _close_trace() {
 	if (tfp) tfp->close();
 }
 #endif
+
+//struct Optimizer {
+  //std::vector<int> optimize(size_t NUM_CYCLES, size_t NUM_ITERATIONS) {
+
+    //////const size_t NUM_TESTBENCHES = std::stoi(argv[1]);
+    ////const size_t NUM_CYCLES = std::stoi(argv[1]);
+    //////const size_t BATCH_SIZE = std::stoi(argv[2]);
+    
+    ////const int BLOCK_DIM_CHOICES[5] = {128, 256, 384, 512, 1024}; 
+
+    //// profiling =======================================================================
+    ////std::chrono::time_point<std::chrono::steady_clock> total_tic;
+    ////std::chrono::time_point<std::chrono::steady_clock> total_toc;
+    ////long long int total_duration{0};
+    //std::chrono::time_point<std::chrono::steady_clock> tic;
+    //std::chrono::time_point<std::chrono::steady_clock> toc;
+    //std::chrono::time_point<std::chrono::steady_clock> sim_tic;
+    //std::chrono::time_point<std::chrono::steady_clock> sim_toc;
+    ////long int eval_duration{0};
+
+    //std::chrono::microseconds total_duration(0);
+    //std::chrono::microseconds sim_duration(0);
+    //std::chrono::microseconds best_sim_duration = std::chrono::microseconds::max();
+    //// end of profiling =======================================================================
+
+    //RF::VNV_nvdla* dut = new RF::VNV_nvdla;
+    //std::vector<int> best_block_dims;
+
+    //printf("Optimize kernel parameters for each partition...................\n");
+
+    //int tmp;
+    //tic = std::chrono::steady_clock::now();
+    //for(int bs = 128; bs <= 1024; bs *= 2) {
+      //printf("Batch size: %i ========\n", bs);
+      //RF::set_batch_size(bs);
+      //RF::RTLflow rtlflow(dut);
+      //rtlflow.initialize();
+      //rtlflow.run();
+    
+      //for(int p = 0; p < rtlflow.block_dims.size(); ++p) {
+        //printf("Task: %i ========\n", p);
+        //best_sim_duration = std::chrono::microseconds::max();
+        //for(size_t b = 64; b <= 1024; b *= 2) {
+          //tmp = rtlflow.block_dims[p];
+          //rtlflow.block_dims[p] = b;
+
+          //try {
+            //rtlflow.update(p);
+          //}
+          //catch (std::runtime_error const& err) {
+            //std::cout << "BlockDim: " << b << ": " << err.what() << "\n";
+            //rtlflow.block_dims[p] = tmp;
+            //rtlflow.update(p);
+            //continue;
+          //}
+
+          //for(size_t _ = 0; _ < 32; ++_) {
+            //rtlflow.run();
+          //}
+
+          //sim_duration = std::chrono::microseconds(0);
+
+          //for (size_t it = 0; it < NUM_ITERATIONS; ++it) {
+            //sim_tic = std::chrono::steady_clock::now();
+            //for (size_t c = 0; c < NUM_CYCLES; ++c) {
+              //rtlflow.run();
+            //}
+            //sim_toc = std::chrono::steady_clock::now();
+            //sim_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(sim_toc - sim_tic);
+          //}
+          //sim_duration /= NUM_ITERATIONS;
+
+          //if(best_sim_duration.count() > sim_duration.count()) {
+            //best_sim_duration = sim_duration;
+            ////printf("update configure for partition %i: (configure,time) - (%i, %ld) \n", p, rtlflow.block_dims[p], std::chrono::duration_cast<std::chrono::microseconds>(best_sim_duration).count());
+          //}
+          //else {
+            //rtlflow.block_dims[p] = tmp;
+            //rtlflow.update(p);
+          //}
+          //std::cout << "blockDim: " << rtlflow.block_dims[p] << "\n";
+          ////std::cout << "tested simulation time: "<< std::chrono::duration_cast<std::chrono::microseconds>(sim_duration).count() << "ms\n";
+          //std::cout << "best simulation time: "<< std::chrono::duration_cast<std::chrono::microseconds>(best_sim_duration).count() << "ms\n";
+
+        //}
+
+      //} 
+      //best_block_dims = rtlflow.block_dims;
+    //}
+    //toc = std::chrono::steady_clock::now();
+
+    //total_duration +=  std::chrono::duration_cast<std::chrono::seconds>(toc - tic);
+
+    //std::ofstream out("./optimized_result.out", std::ios_base::app);
+    //out << "Number of cycles:"      << NUM_CYCLES << "\n";
+    ////out << "Batch size:"            << BATCH_SIZE << "\n";
+    //out << "best simulation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(best_sim_duration).count() << "s\n";
+    //for(size_t p = 3; p < best_block_dims.size(); ++p) {
+      //out << "best cofigure for partition " <<  p - 2 << ": " << best_block_dims[p] << "\n";
+    //}
+    //out << "total optimization time: " << std::chrono::duration_cast<std::chrono::seconds>(total_duration).count() << "s\n";
+    //out << "======================================================\n";
+    //out.close();
+
+    //free(dut);
+
+    //return best_block_dims;
+  //}
+//};
 
 // random data generator
 //uint32_t randomize(uint32_t data) {
@@ -976,23 +1084,32 @@ public:
 };
 
 int main(int argc, const char **argv, char **env) {
+  
   //total_tic = std::chrono::steady_clock::now();
   //if (argc != 4) {
     //fprintf(stderr, "nvdla requires exactly 3 parameters\n");
     //return 1;
   //}
+  RF::Verilated::commandArgs(argc, argv);
+  //RF::set_batch_size(std::stoi(argv[1]));
+  //int BLOCK_DIM = std::stoi(argv[2]);
+  //const size_t NUM_ITERATIONS = std::stoi(argv[2]);
+  //Optimizer opt;
+  //auto trained_params = opt.optimize(1, 1);
 
   const size_t NUM_TESTBENCHES = std::stoi(argv[1]);
   const size_t NUM_CYCLES = std::stoi(argv[2]);
   std::string dir{argv[3]}; 
-  size_t NUM_LINES = NUM_TESTBENCHES / RF::THREADS;
+
+
+  //RF::VNV_nvdla* dut{nullptr};
+  RF::VNV_nvdla* dut = new RF::VNV_nvdla;
+  //cudaMallocManaged(&dut, sizeof(RF::VNV_nvdla));
+  
   size_t NUM_PIPES = NUM_CYCLES;
-  printf("Number of testbenches: %zu\n", NUM_TESTBENCHES);
-  printf("Number of cycles: %zu\n", NUM_CYCLES);
-  printf("Number of GPU threads: %zu\n", RF::THREADS);
-  printf("Number of pipes: %zu\n", NUM_CYCLES);
-  printf("Number of lines: %zu\n", NUM_LINES);
-  printf("Directory of testbenches: %s\n", dir.c_str());
+  size_t BATCH_SIZE = RF::BATCH_SIZE;
+  size_t NUM_LINES = NUM_TESTBENCHES / BATCH_SIZE;
+
 
   // profiling =======================================================================
   //std::chrono::time_point<std::chrono::steady_clock> total_tic;
@@ -1002,16 +1119,21 @@ int main(int argc, const char **argv, char **env) {
   std::chrono::time_point<std::chrono::steady_clock> toc;
   long int eval_duration{0};
 
-  std::vector<std::chrono::time_point<std::chrono::steady_clock>> sim_tics(NUM_LINES);
-  std::vector<std::chrono::time_point<std::chrono::steady_clock>> sim_tocs(NUM_LINES);
-  std::vector<std::chrono::time_point<std::chrono::steady_clock>> set_tics(NUM_LINES);
-  std::vector<std::chrono::time_point<std::chrono::steady_clock>> set_tocs(NUM_LINES);
-  std::vector<std::chrono::microseconds> sim_durations(NUM_LINES, std::chrono::microseconds(0));
-  std::vector<std::chrono::microseconds> set_durations(NUM_LINES, std::chrono::microseconds(0));
+  //std::vector<std::chrono::time_point<std::chrono::steady_clock>> sim_tics(NUM_LINES);
+  //std::vector<std::chrono::time_point<std::chrono::steady_clock>> sim_tocs(NUM_LINES);
+  //std::vector<std::chrono::time_point<std::chrono::steady_clock>> set_tics(NUM_LINES);
+  //std::vector<std::chrono::time_point<std::chrono::steady_clock>> set_tocs(NUM_LINES);
+  //std::vector<std::chrono::time_point<std::chrono::steady_clock>> set0_tics(NUM_LINES);
+  //std::vector<std::chrono::time_point<std::chrono::steady_clock>> set0_tocs(NUM_LINES);
+  //std::vector<std::chrono::time_point<std::chrono::steady_clock>> set1_tics(NUM_LINES);
+  //std::vector<std::chrono::time_point<std::chrono::steady_clock>> set1_tocs(NUM_LINES);
+  //std::vector<std::chrono::microseconds> sim_durations(NUM_LINES, std::chrono::microseconds(0));
+  //std::vector<std::chrono::microseconds> set_durations(NUM_LINES, std::chrono::microseconds(0));
+  //std::vector<std::chrono::microseconds> set1_durations(NUM_LINES, std::chrono::microseconds(0));
+  //std::vector<std::chrono::microseconds> set0_durations(NUM_LINES, std::chrono::microseconds(0));
   // end of profiling =======================================================================
 
-  RF::VNV_nvdla* dut = new RF::VNV_nvdla;
-  std::vector<RF::RTLflow> rtlflows(NUM_LINES);
+  std::vector<RF::RTLflow> rtlflows(NUM_LINES, dut);
   std::vector<std::vector<TraceLoader*>> traces(NUM_LINES);
   std::vector<std::vector<CSBMaster*>> csbs(NUM_LINES);
   std::vector<std::vector<AXIResponder*>> axi_dbbs(NUM_LINES);
@@ -1019,11 +1141,13 @@ int main(int argc, const char **argv, char **env) {
   printf("Initialize...................\n");
 
   for(size_t p = 0; p < NUM_LINES; ++p) {
-    traces[p].resize(RF::THREADS);
-    csbs[p].resize(RF::THREADS);
-    axi_dbbs[p].resize(RF::THREADS);
-    axi_cvsrams[p].resize(RF::THREADS);
-    rtlflows[p].initialize(dut);
+    traces[p].resize(BATCH_SIZE);
+    csbs[p].resize(BATCH_SIZE);
+    axi_dbbs[p].resize(BATCH_SIZE);
+    axi_cvsrams[p].resize(BATCH_SIZE);
+    
+    //rtlflows[p].block_dims = std::vector<int>(rtlflows[p].block_dims.size(), BLOCK_DIM);
+    rtlflows[p].initialize();
   }
   RF::Verilated::commandArgs(argc, argv);
 
@@ -1031,7 +1155,7 @@ int main(int argc, const char **argv, char **env) {
 
   #pragma omp parallel for collapse(2)
   for(size_t p = 0; p < NUM_LINES; ++p) {
-    for(size_t t = 0; t < RF::THREADS; ++t) {
+    for(size_t t = 0; t < BATCH_SIZE; ++t) {
       csbs[p][t] = new CSBMaster(rtlflows[p], dut, t);
       
       AXIResponder::connections dbbconn = {
@@ -1115,211 +1239,121 @@ int main(int argc, const char **argv, char **env) {
       *(rtlflows[p].get(dut->nvdla_pwrbus_ram_a_pd, t)) = 0;
 
 
-      traces[p][t]->load(std::string(dir+"tb"+std::to_string(p * RF::THREADS + t)+".bin").c_str());
+      traces[p][t]->load(std::string(dir+"tb"+std::to_string(p * BATCH_SIZE + t)+".bin").c_str());
     }
   }
 
-  //printf("reset...\n");
-  //#pragma omp parallel for
-  //for(size_t p = 0; p < NUM_LINES; ++p) {
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
-      //*(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
-      //*(rtlflows[p].get(dut->direct_reset_, t)) = 1;
-    //}
-    //rtlflows[p].run();
-  //}
+  printf("reset...\n");
+  #pragma omp parallel for
+  for(size_t p = 0; p < NUM_LINES; ++p) {
+    for(size_t t = 0; t < BATCH_SIZE; ++t) {
+      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
+      *(rtlflows[p].get(dut->direct_reset_, t)) = 1;
+    }
+    rtlflows[p].run();
+  }
 
-  //for (int i = 0; i < 20; i++) {
-//#pragma omp parallel for
-    //for(size_t p = 0; p < NUM_LINES; ++p) {
-      //for(size_t t = 0; t < RF::THREADS; ++t) {
-        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      //}
-      //rtlflows[p].run();
+  for (int i = 0; i < 20; i++) {
+#pragma omp parallel for
+    for(size_t p = 0; p < NUM_LINES; ++p) {
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
+        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
+      }
+      rtlflows[p].run();
+      //ticks++;
+  //#if VM_TRACE
+      //tfp->dump(ticks);
+  //#endif
+      
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
+        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
+      }
+      rtlflows[p].run();
       //ticks++;
   ////#if VM_TRACE
       ////tfp->dump(ticks);
   ////#endif
-      
-      //for(size_t t = 0; t < RF::THREADS; ++t) {
-        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      //}
-      //rtlflows[p].run();
-      //ticks++;
-  //////#if VM_TRACE
-      //////tfp->dump(ticks);
-  //////#endif
-    //}
-  //}
+    }
+  }
 
-//#pragma omp parallel for
-  //for(size_t p = 0; p < NUM_LINES; ++p) {
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
-      //*(rtlflows[p].get(dut->dla_reset_rstn, t)) = 0;
-      //*(rtlflows[p].get(dut->direct_reset_, t)) = 0;
-    //}
-    //rtlflows[p].run();
-  //}
+#pragma omp parallel for
+  for(size_t p = 0; p < NUM_LINES; ++p) {
+    for(size_t t = 0; t < BATCH_SIZE; ++t) {
+      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 0;
+      *(rtlflows[p].get(dut->direct_reset_, t)) = 0;
+    }
+    rtlflows[p].run();
+  }
   
-  //for (int i = 0; i < 20; i++) {
-//#pragma omp parallel for
-    //for(size_t p = 0; p < NUM_LINES; ++p) {
-      //for(size_t t = 0; t < RF::THREADS; ++t) {
-        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      //}
-      //rtlflows[p].run();
+  for (int i = 0; i < 20; i++) {
+#pragma omp parallel for
+    for(size_t p = 0; p < NUM_LINES; ++p) {
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
+        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
+      }
+      rtlflows[p].run();
       //ticks++;
-  ////#if VM_TRACE
-      ////tfp->dump(ticks);
-  ////#endif
+  //#if VM_TRACE
+      //tfp->dump(ticks);
+  //#endif
       
-      //for(size_t t = 0; t < RF::THREADS; ++t) {
-        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      //}
-      //rtlflows[p].run();
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
+        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
+      }
+      rtlflows[p].run();
       //ticks++;
-  ////#if VM_TRACE
-      ////tfp->dump(ticks);
-  ////#endif
-    //}
-  //}
+  //#if VM_TRACE
+      //tfp->dump(ticks);
+  //#endif
+    }
+  }
   
 //#pragma omp parallel for collapse(2)
-  //for(size_t p = 0; p < NUM_LINES; ++p) {
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
-      //*(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
-      //*(rtlflows[p].get(dut->direct_reset_, t)) = 1;
-    //}
-  //}
+  for(size_t p = 0; p < NUM_LINES; ++p) {
+    for(size_t t = 0; t < BATCH_SIZE; ++t) {
+      *(rtlflows[p].get(dut->dla_reset_rstn, t)) = 1;
+      *(rtlflows[p].get(dut->direct_reset_, t)) = 1;
+    }
+  }
   
-  //printf("letting buffers clear after reset...\n");
-  //for (int i = 0; i < 8192; i++) {
-//#pragma omp parallel for
-    //for(size_t p = 0; p < NUM_LINES; ++p) {
-      //for(size_t t = 0; t < RF::THREADS; ++t) {
-        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
-      //}
-      //rtlflows[p].run();
+  printf("letting buffers clear after reset...\n");
+  for (int i = 0; i < 8192; i++) {
+#pragma omp parallel for
+    for(size_t p = 0; p < NUM_LINES; ++p) {
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        *(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
+        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
+      }
+      rtlflows[p].run();
       //ticks++;
-  ////#if VM_TRACE
-      ////tfp->dump(ticks);
-  ////#endif
+  //#if VM_TRACE
+      //tfp->dump(ticks);
+  //#endif
       
-      //for(size_t t = 0; t < RF::THREADS; ++t) {
-        //*(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-        //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
-      //}
-      //rtlflows[p].run();
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        *(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
+        *(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
+      }
+      rtlflows[p].run();
       //ticks++;
-  ////#if VM_TRACE
-      ////tfp->dump(ticks);
-  ////#endif
-    //}
-  //}
+  //#if VM_TRACE
+      //tfp->dump(ticks);
+  //#endif
+    }
+  }
 
   printf("running trace...\n");
 
-  tf::Executor executor{80};
+  tf::Executor executor;
   tf::Taskflow taskflow;
   std::vector<tf::Taskflow> one_cycle_taskflows(NUM_LINES);
   std::vector<tf::Pipe<>> pipes;
   tf::ScalablePipeline<decltype(pipes)::iterator> spl;
-  std::vector<int> waitings(NUM_LINES, 0);
-
-  // Ver.2 ============================================================================================
-  for(size_t l = 0; l < NUM_LINES; ++l) {
-
-    auto set_t = one_cycle_taskflows[l].emplace([&, l]() mutable {
-      set_tics[l] = std::chrono::steady_clock::now();
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        int extevent;
-
-        extevent = csbs[l][t]->eval(waitings[l]);
-
-        if (extevent == TraceLoader::TRACE_AXIEVENT)
-          traces[l][t]->axievent();
-        else if (extevent == TraceLoader::TRACE_WFI) {
-          waitings[l] = 1;
-          printf("(%lu) waiting for interrupt...\n", ticks);
-        } else if (extevent & TraceLoader::TRACE_SYNCPT_MASK) {
-          traces[l][t]->syncpt(extevent);
-        }
-
-        if (waitings[l] && *(rtlflows[l].get(dut->dla_intr, t))) {
-          printf("(%lu) interrupt!\n", ticks);
-          waitings[l] = 0;
-        }
-
-        axi_dbbs[l][t]->eval();
-
-        if (axi_cvsrams[l][t] != nullptr) {
-          axi_cvsrams[l][t]->eval();
-        }
-      }
-      set_tocs[l] = std::chrono::steady_clock::now();
-      set_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(set_tocs[l] - set_tics[l]);
-    }).name("set");
-
-    auto set1_t = one_cycle_taskflows[l].emplace([&, l]() mutable {
-      set_tics[l] = std::chrono::steady_clock::now();
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[l].get(dut->dla_core_clk, t)) = 1;
-        *(rtlflows[l].get(dut->dla_csb_clk, t)) = 1;
-      }
-      set_tocs[l] = std::chrono::steady_clock::now();
-      set_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(set_tocs[l] - set_tics[l]);
-    }).name("set_1");
-    auto set0_t = one_cycle_taskflows[l].emplace([&, l]() mutable {
-      set_tics[l] = std::chrono::steady_clock::now();
-      for(size_t t = 0; t < RF::THREADS; ++t) {
-        *(rtlflows[l].get(dut->dla_core_clk, t)) = 0;
-        *(rtlflows[l].get(dut->dla_csb_clk, t)) = 0;
-      }
-      set_tocs[l] = std::chrono::steady_clock::now();
-      set_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(set_tocs[l] - set_tics[l]);
-    }).name("set_0");
-
-
-    auto&& sim_graph = rtlflows[l].taskflow();
-    auto sim1_t = one_cycle_taskflows[l].emplace([&, l](){ 
-      sim_tics[l] = std::chrono::steady_clock::now();
-      rtlflows[l].run(); 
-      sim_tocs[l] = std::chrono::steady_clock::now();
-      sim_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(sim_tocs[l] - sim_tics[l]);
-    }).name("sim_graph");
-    //auto sim2_t = one_cycle_taskflows[l].emplace([&, l](){ 
-      //sim_tics[l] = std::chrono::steady_clock::now();
-      //rtlflows[l].run(); 
-      //sim_tocs[l] = std::chrono::steady_clock::now();
-      //sim_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(sim_tocs[l] - sim_tics[l]);
-    //}).name("sim_graph");
-    //auto sim1_t = one_cycle_taskflows[p].composed_of(sim_graph).name("sim_graph");
-    //auto sim2_t = one_cycle_taskflows[p].composed_of(sim_graph).name("sim_graph");
-
-    //if(l % 3 == 0) {
-      set_t.precede(set1_t);
-      set1_t.precede(sim1_t);
-      sim1_t.precede(set0_t);
-      //set0_t.precede(sim2_t);
-    //}
-    //else if (l % 3 == 1){
-      //sim1_t.precede(set0_t);
-      //set0_t.precede(sim2_t);
-      //sim2_t.precede(set_t);
-      //set_t.precede(set1_t);
-    //}
-    //else {
-      //sim2_t.precede(set_t);
-      //set_t.precede(set1_t);
-      //set1_t.precede(sim1_t);
-      //sim1_t.precede(set0_t);
-    //}
-  }
+  std::vector<std::vector<int>> waitings(NUM_LINES, std::vector<int>(BATCH_SIZE, 0));
 
   pipes.reserve(NUM_PIPES);
 
@@ -1328,18 +1362,60 @@ int main(int argc, const char **argv, char **env) {
   // first pipe needs to be SERIAL
   pipes.emplace_back(tf::PipeType::SERIAL, [&](tf::Pipeflow& pf) mutable {
     if(pf.token() == NUM_LINES) {
-      ticks++;
+      //ticks++;
       pf.stop();
-      return;
     }
-
-    executor.run(one_cycle_taskflows[pf.token()]).wait();
   });
 
   // other pipes
-  for(size_t p = 1; p < NUM_PIPES; ++p) {
+  for(size_t p = 0; p < NUM_PIPES; ++p) {
     pipes.emplace_back(tf::PipeType::PARALLEL, [&](tf::Pipeflow& pf) mutable {
-      executor.run(one_cycle_taskflows[pf.token()]).wait();
+
+      // set stimuli
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        int extevent;
+
+        extevent = csbs[pf.token()][t]->eval(waitings[pf.token()][t]);
+
+        if (extevent == TraceLoader::TRACE_AXIEVENT)
+          traces[pf.token()][t]->axievent();
+        else if (extevent == TraceLoader::TRACE_WFI) {
+          waitings[pf.token()][t] = 1;
+          printf("(%lu) waiting for interrupt...\n", ticks);
+        } else if (extevent & TraceLoader::TRACE_SYNCPT_MASK) {
+          traces[pf.token()][t]->syncpt(extevent);
+        }
+
+        if (waitings[pf.token()][t] && *(rtlflows[pf.token()].get(dut->dla_intr, t))) {
+          printf("(%lu) interrupt!\n", ticks);
+          waitings[pf.token()][t] = 0;
+        }
+
+        axi_dbbs[pf.token()][t]->eval();
+
+        if (axi_cvsrams[pf.token()][t] != nullptr) {
+          axi_cvsrams[pf.token()][t]->eval();
+        }
+      }
+
+      // set clock to 1
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        *(rtlflows[pf.token()].get(dut->dla_core_clk, t)) = 1;
+        *(rtlflows[pf.token()].get(dut->dla_csb_clk, t)) = 1;
+      }
+
+      // evaluate
+      rtlflows[pf.token()].run(); 
+
+      // set clock to 0
+      for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        *(rtlflows[pf.token()].get(dut->dla_core_clk, t)) = 0;
+        *(rtlflows[pf.token()].get(dut->dla_csb_clk, t)) = 0;
+      }
+
+      // evaluate
+      rtlflows[pf.token()].run(); 
+      //executor.run(one_cycle_taskflows[pf.token()]).wait();
     });
   }
 
@@ -1350,13 +1426,104 @@ int main(int argc, const char **argv, char **env) {
   executor.run(taskflow).wait();
   toc = std::chrono::steady_clock::now();
 
+  // Ver.2 ============================================================================================
+  //for(size_t l = 0; l < NUM_LINES; ++l) {
+
+    //auto set_t = one_cycle_taskflows[l].emplace([&, BATCH_SIZE, l]() mutable {
+      ////set_tics[l] = std::chrono::steady_clock::now();
+      //for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        //int extevent;
+
+        //extevent = csbs[l][t]->eval(waitings[l][t]);
+
+        //if (extevent == TraceLoader::TRACE_AXIEVENT)
+          //traces[l][t]->axievent();
+        //else if (extevent == TraceLoader::TRACE_WFI) {
+          //waitings[l][t] = 1;
+          //printf("(%lu) waiting for interrupt...\n", ticks);
+        //} else if (extevent & TraceLoader::TRACE_SYNCPT_MASK) {
+          //traces[l][t]->syncpt(extevent);
+        //}
+
+        //if (waitings[l][t] && *(rtlflows[l].get(dut->dla_intr, t))) {
+          //printf("(%lu) interrupt!\n", ticks);
+          //waitings[l][t] = 0;
+        //}
+
+        //axi_dbbs[l][t]->eval();
+
+        //if (axi_cvsrams[l][t] != nullptr) {
+          //axi_cvsrams[l][t]->eval();
+        //}
+      //}
+      ////set_tocs[l] = std::chrono::steady_clock::now();
+      ////set_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(set_tocs[l] - set_tics[l]);
+    //}).name("set");
+
+    //auto set1_t = one_cycle_taskflows[l].emplace([&, BATCH_SIZE, l]() mutable {
+      ////set1_tics[l] = std::chrono::steady_clock::now();
+      //for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        //*(rtlflows[l].get(dut->dla_core_clk, t)) = 1;
+        //*(rtlflows[l].get(dut->dla_csb_clk, t)) = 1;
+      //}
+      ////set1_tocs[l] = std::chrono::steady_clock::now();
+      ////set1_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(set1_tocs[l] - set1_tics[l]);
+    //}).name("set_1");
+    //auto set0_t = one_cycle_taskflows[l].emplace([&, BATCH_SIZE, l]() mutable {
+      ////set0_tics[l] = std::chrono::steady_clock::now();
+      //for(size_t t = 0; t < BATCH_SIZE; ++t) {
+        //*(rtlflows[l].get(dut->dla_core_clk, t)) = 0;
+        //*(rtlflows[l].get(dut->dla_csb_clk, t)) = 0;
+      //}
+      ////set0_tocs[l] = std::chrono::steady_clock::now();
+      ////set0_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(set0_tocs[l] - set0_tics[l]);
+    //}).name("set_0");
+
+
+    //auto&& sim_graph = rtlflows[l].taskflow();
+    //auto sim1_t = one_cycle_taskflows[l].emplace([&, l](){ 
+      ////sim_tics[l] = std::chrono::steady_clock::now();
+      //rtlflows[l].run(); 
+      ////sim_tocs[l] = std::chrono::steady_clock::now();
+      ////sim_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(sim_tocs[l] - sim_tics[l]);
+    //}).name("sim_graph");
+    //auto sim2_t = one_cycle_taskflows[l].emplace([&, l](){ 
+      ////sim_tics[l] = std::chrono::steady_clock::now();
+      //rtlflows[l].run(); 
+      ////sim_tocs[l] = std::chrono::steady_clock::now();
+      ////sim_durations[l] +=  std::chrono::duration_cast<std::chrono::microseconds>(sim_tocs[l] - sim_tics[l]);
+    //}).name("sim_graph");
+    ////auto sim1_t = one_cycle_taskflows[p].composed_of(sim_graph).name("sim_graph");
+    ////auto sim2_t = one_cycle_taskflows[p].composed_of(sim_graph).name("sim_graph");
+
+    ////if(l % 3 == 0) {
+      //set_t.precede(set1_t);
+      //set1_t.precede(sim1_t);
+      //sim1_t.precede(set0_t);
+      //set0_t.precede(sim2_t);
+    ////}
+    ////else if (l % 3 == 1){
+      ////sim1_t.precede(set0_t);
+      ////set0_t.precede(sim2_t);
+      ////sim2_t.precede(set_t);
+      ////set_t.precede(set1_t);
+    ////}
+    ////else {
+      ////sim2_t.precede(set_t);
+      ////set_t.precede(set1_t);
+      ////set1_t.precede(sim1_t);
+      ////sim1_t.precede(set0_t);
+    ////}
+  //}
+
+
 
   // ============================================================================================
 
   // Ver.1 ============================================================================================
   //auto one_cycle_t = [&](size_t p){
     //int waiting = 0;
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
+    //for(size_t t = 0; t < BATCH_SIZE; ++t) {
       //int extevent;
 
       //extevent = csbs[p][t]->eval(waiting);
@@ -1382,17 +1549,17 @@ int main(int argc, const char **argv, char **env) {
       //}
     //}
 
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
-      //*(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
-      //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
+    //for(size_t t = 0; t < BATCH_SIZE; ++t) {
+      ///[>(rtlflows[p].get(dut->dla_core_clk, t)) = 1;
+      ///[>(rtlflows[p].get(dut->dla_csb_clk, t)) = 1;
     //}
 
     //rtlflows[p].run();
     //ticks++;
 
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
-      //*(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
-      //*(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
+    //for(size_t t = 0; t < BATCH_SIZE; ++t) {
+      ///[>(rtlflows[p].get(dut->dla_core_clk, t)) = 0;
+      ///[>(rtlflows[p].get(dut->dla_csb_clk, t)) = 0;
     //}
 
     //rtlflows[p].run();
@@ -1441,7 +1608,7 @@ int main(int argc, const char **argv, char **env) {
 
   //#pragma omp parallel for
   //for(size_t p = 0; p < NUM_LINES; ++p) {
-    //for(size_t t = 0; t < RF::THREADS; ++t) {
+    //for(size_t t = 0; t < BATCH_SIZE; ++t) {
       //if (!traces[p][t]->test_passed()) {
         //printf("*** FAIL: test failed due to output mismatch\n");
         ////return 1;
@@ -1456,11 +1623,24 @@ int main(int argc, const char **argv, char **env) {
     //}
   //}
   eval_duration +=  std::chrono::duration_cast<std::chrono::seconds>(toc - tic).count();
-  for(size_t l = 0; l < NUM_LINES; ++l) {
-    printf("set duration for line %zi: %lds\n", l, std::chrono::duration_cast<std::chrono::seconds>(set_durations[l]).count());
-    printf("sim duration for line %zi: %lds\n", l, std::chrono::duration_cast<std::chrono::seconds>(sim_durations[l]).count());
-  }
-  printf("total eval duration: %lds\n", eval_duration);
+
+  std::ofstream out("./result.out", std::ios_base::app);
+  out << "Number of testbenches:" << NUM_TESTBENCHES  << "\n";
+  out << "Number of cycles:"      << NUM_CYCLES       << "\n";
+  out << "Number of pipes: "      << NUM_PIPES        << "\n";
+  out << "Number of lines: "      << NUM_LINES        << "\n";
+  //out << "Batch size:"            << BATCH_SIZE       << "\n";
+  //out << "Block Dim:"             << BLOCK_DIM        << "\n";
+  //printf("Directory of testbenches: %s\n", dir.c_str());
+  //for(size_t l = 0; l < NUM_LINES; ++l) {
+    //out << "set duration for line "         << l << ": " << std::chrono::duration_cast<std::chrono::seconds>(set_durations[l]).count()  << "s\n";
+    //out << "set clock 1 duration for line " << l << ": " << std::chrono::duration_cast<std::chrono::seconds>(set1_durations[l]).count() << "s\n";
+    //out << "set clock 0 duration for line " << l << ": " << std::chrono::duration_cast<std::chrono::seconds>(set0_durations[l]).count() << "s\n";
+    //out << "sim duration for line "         << l << ": " << std::chrono::duration_cast<std::chrono::seconds>(sim_durations[l]).count()  << "s\n";
+  //}
+  out << "total eval duration: " << eval_duration << "s\n";
+  out << "======================================================\n";
+  out.close();
 
   //total_toc = std::chrono::steady_clock::now();
   //total_duration +=  std::chrono::duration_cast<std::chrono::seconds>(total_toc - total_tic).count();

@@ -11,154 +11,90 @@
 //#include "verilated.h"
 //#include "../../../verilator/include/verilated.h"
 
-RF::RTLflow rtlflow(GPU_THREADS);
+RF::RTLflow rtlflow(RF::BATCH_SIZE);
 RF::RTLflow& RF::VExampleTop::_rtlflow = rtlflow;
 //void check(RF::RTLflow& rtlflow, VExampleTop__Syms* vlSymsp);
 //std::chrono::time_point<std::chrono::steady_clock> total_tic;
 //std::chrono::time_point<std::chrono::steady_clock> total_toc;
-//std::chrono::time_point<std::chrono::steady_clock> tic;
-//std::chrono::time_point<std::chrono::steady_clock> toc;
-//long long int eval_duration{0};
 //long long int total_duration{0};
 
 int main(int argc, char **argv) 
 {
-  //total_tic = std::chrono::steady_clock::now();
-    RF::Verilated::commandArgs(argc, argv);
+  std::chrono::time_point<std::chrono::steady_clock> tic;
+  std::chrono::time_point<std::chrono::steady_clock> toc;
+  long long int eval_duration{0};
 
-    int nr_cycles = 1000000;
-    //if (argc ==2)
-        //nr_cycles = atoi(argv[1]);
-    //double sim_time{0};
+  RF::Verilated::commandArgs(argc, argv);
 
-    //std::cout << "Number of  cycles: " << nr_cycles << "\n";
-    //std::cout << "Number of testbenches: " << NUM_TESTBENCHES << "\n";
+  size_t NUM_CYCLES = 1000000;
+  if (argc == 2)
+      NUM_CYCLES = atoi(argv[1]);
 
-    //beg_sim = std::chrono::steady_clock::now();
+  size_t NUM_PIPES = NUM_CYCLES;
+  size_t BATCH_SIZE = RF::BATCH_SIZE;
+  size_t NUM_LINES = NUM_TESTBENCHES / BATCH_SIZE;
 
-    RF::VExampleTop *tb = new RF::VExampleTop;
-    //VExampleTop *tb_cpu = new VExampleTop;
-    //bool prev_led_red;
-    //bool prev_led_green;
-    //bool prev_led_blue;
-////#if defined(TRACE_VCD)
-    ////VerilatedVcdC *trace;
-////#endif
+  std::cout << "Number of  cycles: " << NUM_CYCLES << "\n";
+  std::cout << "Number of testbenches: " << NUM_TESTBENCHES << "\n";
 
+  double sim_time{0};
+  beg_sim = std::chrono::steady_clock::now();
 
-////#if defined(TRACE_VCD)
-    ////Verilated::traceEverOn(true);
-////#endif
+  RF::VExampleTop *dut = new RF::VExampleTop;
+  std::vector<RF::RTLflow> rtlflows(NUM_LINES, dut);
+  printf("running trace...\n");
 
-////#if defined(TRACE_VCD)
-    ////trace = new VerilatedVcdC;
-    ////tb->trace(trace, 99);
-    ////trace->open("waves.vcd");
-////#endif
+  tf::Executor executor;
+  tf::Taskflow taskflow;
+  std::vector<tf::Pipe<>> pipes;
+  tf::ScalablePipeline<decltype(pipes)::iterator> spl;
 
-  //tic = std::chrono::steady_clock::now();
-	//tb->eval();
-  //toc = std::chrono::steady_clock::now();
-  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
-    ////tb_cpu->eval();
-    ////check(rtlflow, tb_cpu->__VlSymsp);
+  pipes.reserve(NUM_PIPES);
 
-    ////rtlflow._isignals[tb->button] = 1;
-    ////double set_time{0};
-    ////std::chrono::time_point<std::chrono::steady_clock> beg_set;
-    ////std::chrono::time_point<std::chrono::steady_clock> end_set;
+  assert(NUM_PIPES > 0);
 
-    //for(int i=0;i<nr_cycles;++i) {
+  pipes.emplace_back(tf::PipeType::SERIAL, [&](tf::Pipeflow& pf) mutable {
+    if(pf.token() == NUM_LINES) {
+      //ticks++;
+      pf.stop();
+    }
+  });
 
-      ////beg_set = std::chrono::steady_clock::now();
-      ////for(int t = 0; t < NUM_TESTBENCHES; ++t) {
-        ///[>(rtlflow.get(tb->osc_clk_in, t)) = 0;
-        //////tb_cpu->osc_clk_in = 0;
-        //////rtlflow._csignals[tb->osc_clk + t] = 0;
-      ////}
-      //cudaMemset(rtlflow.get(tb->osc_clk_in, 0), 0, sizeof(unsigned char) * GPU_THREADS);
-      ////end_set = std::chrono::steady_clock::now();
-      ////set_time += std::chrono::duration_cast<std::chrono::microseconds>(end_set - beg_set).count();
+  for(size_t p = 0;c < NUM_PIPES; ++p) {
+    pipes.emplace_back(tf::PipeType::PARALLEL, [&](tf::Pipeflow& pf) mutable {
 
-  //tic = std::chrono::steady_clock::now();
-	//tb->eval();
-  //toc = std::chrono::steady_clock::now();
-  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
-    ////tb_cpu->eval();
+      for(size_t b = 0; b < BATCH_SIZE; ++b) {
+        *(rtlflows[pf.token()].get(tb->osc_clk_in, b)) = 0;
+      }
 
+      rtlflows[pf.token()].run();
 
-      ////beg_set = std::chrono::steady_clock::now();
-      ////for(int t = 0; t < NUM_TESTBENCHES; ++t) {
-        //////rtlflow._csignals[tb->osc_clk + t] = 1;
-        ///[>(rtlflow.get(tb->osc_clk_in, t)) = 1;
-        //////tb_cpu->osc_clk_in = 1;
-      ////}
-      //cudaMemset(rtlflow.get(tb->osc_clk_in, 0), 1, sizeof(unsigned char) * GPU_THREADS);
-      ////end_set = std::chrono::steady_clock::now();
-      ////set_time += std::chrono::duration_cast<std::chrono::microseconds>(end_set - beg_set).count();
+      for(size_t b = 0; b < BATCH_SIZE; ++b) {
+        *(rtlflows[pf.token()].get(tb->osc_clk_in, b)) = 1;
+      }
 
-      ////beg_sim = std::chrono::steady_clock::now();
-  //tic = std::chrono::steady_clock::now();
-	//tb->eval();
-  //toc = std::chrono::steady_clock::now();
-  //eval_duration +=  std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
-    ////tb_cpu->eval();
-      ////end_sim = std::chrono::steady_clock::now();
-      ////sim_time += std::chrono::duration_cast<std::chrono::microseconds>(end_sim - beg_sim).count();
-      ////std::cout << "clock: " << (int)rtlflow._csignals[tb->osc_clk_in] << "\n";
+      rtlflows[pf.token()].run();
 
-////#if defined(TRACE_VCD) || defined(TRACE_FST)
-        ////trace->dump(i*2);
-////#endif
-        ////rtlflow._csignals[tb->osc_clk_in] = 1;
+      //bool cur_led_red    = *(rtlflows[pf.token()].get(tb->led_red, b));
+      //bool cur_led_blue    = *(rtlflows[pf.token()].get(tb->led_blue, ));
+      //bool cur_led_green    = *(rtlflows[pf.token()].get(tb->led_green, 0));
 
-////#if defined(TRACE_VCD) || defined(TRACE_FST)
-        ////trace->dump(i*2);
-////#endif
+      //prev_led_red    = cur_led_red;
+      //prev_led_green  = cur_led_green;
+      //prev_led_blue   = cur_led_blue;
 
-        ////check(rtlflow, tb_cpu->__VlSymsp);
+    }
+  }
 
-        //bool cur_led_red    = *(rtlflow.get(tb->led_red, 0));
-        //bool cur_led_blue    = *(rtlflow.get(tb->led_blue, 0));
-        //bool cur_led_green    = *(rtlflow.get(tb->led_green, 0));
-        ////bool cur_led_blue    = rtlflow._csignals[tb->led_blue];
-        ////bool cur_led_green    = rtlflow._csignals[tb->led_green];
-
-      ////if(i > 0) {
-      ////for(int t = 0; t < 4095; ++t) {
-        //////std::cerr << t << ", ";
-        ////assert(rtlflow._csignals[tb->led_red + t] == rtlflow._csignals[tb->led_red + t + 1]);
-        ////assert(rtlflow._csignals[tb->led_blue + t] == rtlflow._csignals[tb->led_blue + t + 1]);
-        ////assert(rtlflow._csignals[tb->led_green + t] == rtlflow._csignals[tb->led_green + t + 1]);
-      ////}
-      ////}
-
-        ////if (cur_led_red != prev_led_red){
-            ////std::cout << "led_red: " << cur_led_red << "\n";
-        ////}
-
-        ////if (cur_led_green != prev_led_green){
-            ////std::cout << "led_green: " << cur_led_green << "\n";
-        ////}
-
-        ////if (cur_led_blue != prev_led_blue){
-            ////std::cout << "led_blue: " << cur_led_blue << "\n";
-        ////}
-
-        //prev_led_red    = cur_led_red;
-        //prev_led_green  = cur_led_green;
-        //prev_led_blue   = cur_led_blue;
-
-    //}
-
-    ////end_sim = std::chrono::steady_clock::now();
-    ////sim_time = std::chrono::duration_cast<std::chrono::microseconds>(end_sim - beg_sim).count();
-       
-    ////std::cout << "sim time: " << sim_time << "\n";
+  spl.reset(NUM_LINES, pipes.begin(), pipes.end());
+  auto spl_t = taskflow.composed_of(spl).name("pipeline");
+    
+  tic = std::chrono::steady_clock::now();
+  executor.run(taskflow).wait();
+  toc = std::chrono::steady_clock::now();
         
-  //total_toc = std::chrono::steady_clock::now();
-  //total_duration +=  std::chrono::duration_cast<std::chrono::seconds>(total_toc - total_tic).count();
-  //printf("evaluation duration: %lld\n", eval_duration);
-  //printf("total duration: %lld\n", total_duration);
-    //exit(EXIT_SUCCESS);
+  eval_duration +=  std::chrono::duration_cast<std::chrono::seconds>(toc - tic).count();
+  std::cout << "evaluation duration: " << eval_duration << "\n";
+
+  return 0;
 }
