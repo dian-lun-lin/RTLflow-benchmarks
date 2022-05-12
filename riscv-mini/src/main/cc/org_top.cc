@@ -81,7 +81,7 @@ void tick() {
 int main(int argc, char** argv) {
   Verilated::commandArgs(argc, argv);   // Remember args
   top = new VTile; // target design
-  mem = new mm_magic_t(1L << 32, 8); // target memory
+  mem = new mm_magic_t(1L << 28, 8); // target memory
   load_mem(mem->get_data(), (const char*)(argv[1])); // load hex
 
 #if VM_TRACE			// If verilator was invoked with --trace

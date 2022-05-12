@@ -4,11 +4,11 @@ NUM_CONCAT=$1
 NUM_TESTBENCHES=$2
 OUTPUT_DIR="random_traces"
 
-if [ -e "$OUTPUT_DIR" ]; then
-  rm -rf $OUTPUT_DIR
-fi
+#if [ -e "$OUTPUT_DIR" ]; then
+  #rm -rf $OUTPUT_DIR
+#fi
 
-mkdir $OUTPUT_DIR
+#mkdir $OUTPUT_DIR
 
 filelist=($(ls ./tests))
 

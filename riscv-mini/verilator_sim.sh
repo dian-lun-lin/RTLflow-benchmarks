@@ -1,8 +1,9 @@
 #!/usr/bin/bash
 
 NUM_THREADS=$1
-NUM_TESTBENCHES=(4096 16384 65536)
-NUM_CYCLES=(500000)
+#NUM_TESTBENCHES=(1024 4096 16384 65536)
+NUM_TESTBENCHES=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072 262144)
+NUM_CYCLES=(10000)
 #TESTBENCHES=(1024 4096 16384 65536)
 #cd ../../../outdir/nv_small/verilator
 OUTPUT_DIR="./verilator_results"
@@ -14,8 +15,8 @@ OUTPUT_DIR="./verilator_results"
 
 for ntb in ${NUM_TESTBENCHES[@]}; do
   for nc in ${NUM_CYCLES[@]}; do
-    printf "======================================= Number of testbenches: $ntb =======================================" >> $OUTPUT_DIR/tb${ntb}_c${nc}.out
-    printf "======================================= Number of cycles: $nc =======================================" >> $OUTPUT_DIR/tb${ntb}_c${nc}.out
+    printf "======================================= Number of testbenches: $ntb =======================================" >> verilator_results.out
+    printf "======================================= Number of cycles: $nc =======================================" >> verilator_results.out
 
     files=()
     for (( k=0; k<$ntb;++k )); do  
@@ -28,7 +29,7 @@ for ntb in ${NUM_TESTBENCHES[@]}; do
         if [[ $(jobs -r -p | wc -l) -ge $NUM_THREADS ]]; then wait -n; fi
       done
       wait
-    ) 2>> $OUTPUT_DIR/tb${ntb}_c${nc}.out
+    ) 2>> verilator_results.out
   done
 done
 #PATH=
