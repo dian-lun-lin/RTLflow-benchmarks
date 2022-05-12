@@ -43,9 +43,9 @@ We build RTLflow atop Verilator. Before you build RTLflow simulator, make sure y
 ## Step 2: Generate testbenches
 You can generate numbers of stimulus files by using our scripts. Our scripts generate multiple stimulus by randomly concatenating testbenches offered by riscv-mini.
 ```bash
-~/riscv-mini$ ./traces_random_generator.sh NUM_STIMULUS_CONCATENATE NUM_STIMULUS
+~/riscv-mini$ ./stimulus_random_generator.sh NUM_STIMULUS_CONCATENATE NUM_STIMULUS
 ```
-You will see multiple stimulus files under ```random_traces``` directory.
+You will see multiple stimulus files under ```random_stimulus``` directory.
 
 ## Step 3: Use the optimizer to perform GPU-aware partitioning
 You can try different parpameters to derive differnt partitioning results.
@@ -53,7 +53,7 @@ For example,
 ```bash
 ~/riscv-mini$ mkdir training_results 
 ~/riscv-mini$ cd training_results
-~/riscv-mini/training_results$ ../../optimizer/optimizer -o ./ -s ../random_traces/ -m ../Makefile_rtlflow -v 2 -b 256 -c 1000 --num_stimulus 1024 --num_epochs 2 --beta 0.5 -u 1 
+~/riscv-mini/training_results$ ../../optimizer/optimizer -o ./ -s ../random_stimulus/ -m ../Makefile_rtlflow -v 2 -b 256 -c 1000 --num_stimulus 1024 --num_epochs 2 --beta 0.5 -u 1 
 ```
 
 After optimization, the optimizer will generate ```details/```, ```best_weights```, ```initial_weights```, ```cudaflow.out```, and ```others.out```:
