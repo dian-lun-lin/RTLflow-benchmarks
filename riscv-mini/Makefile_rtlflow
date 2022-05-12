@@ -28,6 +28,7 @@ $(base_dir)/VTile: $(v_dir)/Tile.v $(src_dir)/cc/top.cu $(src_dir)/cc/mm.cu $(sr
 
 rtlflow: $(base_dir)/VTile
 	cp $(base_dir)/VTile $(OUTPUT_DIR)testbench
+	cp $(gen_dir)/VTile.csrc/VTile__stats.txt $(OUTPUT_DIR)
 	rm $(base_dir)/VTile
 
 clean:
