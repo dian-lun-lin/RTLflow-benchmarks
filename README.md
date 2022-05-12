@@ -51,7 +51,8 @@ You will see multiple stimulus files under ```random_traces``` directory.
 You can try different parpameters to derive differnt partitioning results.
 For example, 
 ```bash
-~/riscv-mini$ mkdir training_results & cd training_results
+~/riscv-mini$ mkdir training_results 
+~/riscv-mini$ cd training_results
 ~/riscv-mini/training_results$ ../../optimizer/optimizer -o ./ -s ../random_traces/ -m ../Makefile_rtlflow -v 2 -b 256 -c 1000 --num_stimulus 1024 --num_epochs 2 --beta 0.5 -u 1 
 ```
 
