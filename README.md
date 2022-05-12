@@ -1,9 +1,89 @@
 # RTLflow-benchmarks
 Benchmarks for RTLflow
 
+
 # Build RTLflow
 You will need to build [RTLflow](https://github.com/dian-lun-lin/verilator) first.
+We build RTLflow atop Verilator. Before you build RTLflow simulator, make sure you set ```$VERILATOR_ROOT = ~/YOUR_RTLFLOW_DIR```.
 
+## Compiling RTLflow optimizer
+
+ ```bash
+ ~$ cd optimizer
+ ~/optimizer$ g++ -std=c++17 optimizer.cpp -o optimizer
+ ```
+ After compile, you can use optimizer to perform GPU-aware partitioning using MCMC sampling.
+ Type: 
+ ```bash
+ ~/optimizer$ ./optimizer -h
+ ```
+ to get more information. For example,
+ ```bash
+  -o // output directory
+  -s // stimulus directory
+  -m // makefile path
+  -v // verilator partition size
+  -b // batch size
+  -c // number cycles to estimate runtime
+  --num_stimulus // number of stimulus to estimate runtime
+  --num_epochs // number of epochs to perform MCMC sampling
+  -u // unit weight for MCMC sampling
+  --beta // beta for MCMC sampling
+  -w // weights path (all weights are one if not specified)
+ ```
+ 
+ 
+
+# Simulate riscv-mini design
+## Step 1: Build riscv-mini
+```bash
+~$ cd riscv-mini
+~/riscv-mini$ make
+```
+## Step 2: Generate testbenches
+You can generate numbers of stimulus files by using our scripts. Our scripts generate multiple stimulus by randomly concatenating testbenches offered by riscv-mini.
+```bash
+~/riscv-mini$ ./traces_random_generator.sh NUM_STIMULUS_CONCATENATE NUM_STIMULUS
+```
+You will see multiple stimulus files under ```random_traces``` directory.
+
+## Step 3: Use the optimizer to perform GPU-aware partitioning
+You can try different parpameters to derive differnt partitioning results.
+For example, 
+```bash
+~/riscv-mini$ mkdir training_results & cd training_results
+~/riscv-mini/training_results$ ../../optimizer/optimizer -o ./ -s ../random_traces/ -m ../Makefile_rtlflow -v 2 -b 256 -c 1000 --num_stimulus 1024 --num_epochs 2 --beta 0.5 -u 1 
+```
+
+After optimization, the optimizer will generate ```details/```, ```best_weights```, ```initial_weights```, ```cudaflow.out```, and ```others.out```:
+- details/: training details
+- best_weights: best weights after performing MCMC sampling
+- initial_weights: initial weights
+- cudaflow.out: partitioned CUDA graph (You can use [Graphviz](https://dreampuf.github.io/GraphvizOnline/) to visualize graph)
+- others.out: other parameters you specify for the optimizer
+
+By default, we specify all weights to one.
+You can use your own weights by specifing ```-w YOUR_WEIGHT_PATH```.
+
+
+
+
+
+## Step 4: Build RTLflow simulator for riscv-mini
+To build RTLflow simulator, you need to set four global paratmers: ```BATCH```, ```VERILATOR_PARTITION_SIZE```, ```OUTPUT_DIR```, and ```WEIGHT_TABLE```:
+- BATCH: batch size
+- VERILATOR_PARTITION_SIZE: verilator partition size
+- OUTPUT_DIR: output dir to put the simulator binary file
+- WEIGHT_TABLE: weights
+
+For example,
+```bash
+~/riscv-mini$ make -f Makefile_rtlflow BATCH=256 VERILATOR_PARTITION_SIZE=2  OUTPUT_DIR=./ WEIGHT_TABLE=training_results/best_weights.out
+```
+After make, you will see an executable, ```testbench```, under your OUTPUT_DIR.
+The transpiled CUDA code is under ```generated-src-rtlflow-bs$(BATCH)-vps$(VERILATOR_PARTITON_SIZE)```
+
+<!--
 # Simulate NVDLA design
 
 
@@ -30,7 +110,7 @@ After setting your environment, you need to use tmake to build the RTL
 ```
 
 ## Step 2: Build RTLflow simulator for NVDLA
-We build RTLflow atop Verilator. Before you build RTLflow simulator, make sure you set ```$VERILATOR_ROOT = ~/YOUR_RTLFLOW_DIR```.
+
 We currently simulate one testbench per gpu thread. You should set $GPU_THREADS to the total number of testbenches.
  ```bash
  ~/hw_small$ cd verif/rtlflow/
@@ -55,4 +135,4 @@ To perform simulation, simply type:
 ```
 After simulation, you will see .out file for simulation time.
 
-
+-->
