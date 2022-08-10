@@ -1,0 +1,38 @@
+# Makefile for RTLflow testbench using optimizer
+# Build system for RTLflow testbench
+# NVDLA Open Source Project
+#
+# Copyright (c) 2017 NVIDIA Corporation.  Licensed under the NVDLA Open
+# Hardware License.  For more information, see the "LICENSE" file that came
+# with this distribution.
+#
+# optimizer control the four variables
+# $(OUTPUT_DIR) = optimizer output directory
+# $(WEIGHT_TABLE) = weight table path
+# $(VERILATOR_PARTITION_SIZE)
+# $(BATCH) = batch size
+
+MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+base_dir   = $(abspath $(MAKEFILE_DIR))
+DEPTH = $(base_dir)/../..
+include $(DEPTH)/tools/make/common.make
+
+# default is for optimizer
+# We need to remove compiled sources every time since optimizer will use a different weight table to generate different task graph transpilation code
+default: $(OUTPUT_DIR)testbench
+	#rm -rf $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_vps$(VERILATOR_PARTITION_SIZE)_bs$(BATCH)-c$(NUM_CYCLES)-s$(NUM_STIMULUS)-u$(UNIT_WEIGHT)-b$(BETA)
+
+sim: $(OUTPUT_DIR)testbench
+
+RTLFLOW_PARAMS ?= -CFLAGS "-O2 -DBATCH=$(BATCH)" 
+
+
+$(OUTPUT_DIR)testbench: $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_vps$(VERILATOR_PARTITION_SIZE)_bs$(BATCH)-c$(NUM_CYCLES)-s$(NUM_STIMULUS)-u$(UNIT_WEIGHT)-b$(BETA)/VNV_nvdla.mk $(base_dir)/nvdla.cu
+	#rm -f $(DEPTH)/$(OUTDIR)/$(PROJECT)/verilator_rtlflow/nvdla.cu
+	cp $(base_dir)/nvdla.cu $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_vps$(VERILATOR_PARTITION_SIZE)_bs$(BATCH)-c$(NUM_CYCLES)-s$(NUM_STIMULUS)-u$(UNIT_WEIGHT)-b$(BETA)/nvdla.cu
+	make BATCH=$(BATCH) VM_PARALLEL_BUILDS=1 -j16 -C $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_vps$(VERILATOR_PARTITION_SIZE)_bs$(BATCH)-c$(NUM_CYCLES)-s$(NUM_STIMULUS)-u$(UNIT_WEIGHT)-b$(BETA) -f VNV_nvdla.mk $(VMAKE_PARAMS)
+	cp $(DEPTH)/$(OUTDIR)/$(PROJECT)/rtlflow_vps$(VERILATOR_PARTITION_SIZE)_bs$(BATCH)-c$(NUM_CYCLES)-s$(NUM_STIMULUS)-u$(UNIT_WEIGHT)-b$(BETA)/VNV_nvdla $(OUTPUT_DIR)testbench
+
+$(DEPTH)/outdir/$(PROJECT)/rtlflow_vps$(VERILATOR_PARTITION_SIZE)_bs$(BATCH)-c$(NUM_CYCLES)-s$(NUM_STIMULUS)-u$(UNIT_WEIGHT)-b$(BETA)/VNV_nvdla.mk: $(base_dir)/rtlflow_$(PROJECT)_optimizer.f $(DEPTH)/outdir/$(PROJECT)/vmod # and a lot of RTL...
+	#$(VERILATOR) $(VERILATOR_PARAMS) --cc --threads 4 --exe nvdla.cu -f verilator_$(PROJECT)_optimizer.f --Mdir ../../outdir/$(PROJECT)/verilator_rtlflow/ --compiler clang --output-split 250000000
+	$(RTLFLOW) -O2 $(RTLFLOW_PARAMS) --weight_table $(WEIGHT_TABLE) --stats --threads-max-mtasks 65536 --cc --threads $(VERILATOR_PARTITION_SIZE) --exe $(base_dir)/nvdla.cu -f $(base_dir)/rtlflow_$(PROJECT)_optimizer.f --Mdir rtlflow_vps$(VERILATOR_PARTITION_SIZE)_bs$(BATCH)-c$(NUM_CYCLES)-s$(NUM_STIMULUS)-u$(UNIT_WEIGHT)-b$(BETA) --output-split 25000000
