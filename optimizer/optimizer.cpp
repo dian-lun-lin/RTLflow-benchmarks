@@ -198,6 +198,8 @@ class Estimator {
     size_t _batch_size;
     size_t _num_stimulus;
     size_t _num_cycles;
+    size_t _beta;
+    size_t _unit_weight;
 
     void _make();
 
@@ -215,7 +217,11 @@ void Estimator::_make() {
       << " OUTPUT_DIR="                << _dir
       << " BATCH="                     << _batch_size
       << " VERILATOR_PARTITION_SIZE="  << _verilator_partition_size
-      << " WEIGHT_TABLE="              << (_dir / "details/cur_weights.out").string();
+      << " WEIGHT_TABLE="              << (_dir / "details/cur_weights.out").string()
+      << " NUM_STIMULUS="              << _num_stimulus
+      << " NUM_CYCLES="                << _num_cycles
+      << " UNIT_WEIGHT="               << _unit_weight
+      << " BETA="                      << _beta;
 
   system(ss.str().c_str());
 }
@@ -528,10 +534,12 @@ void MCMCOptimizer::run() {
 
 void MCMCOptimizer::set_beta(const float b) {
   _beta = b;
+  _estimator._beta = b;
 }
 
 void MCMCOptimizer::set_unit_weight(const float uw) {
   _unit_weight = uw;
+  _estimator._unit_weight = uw;
 }
 
 // ====================================================

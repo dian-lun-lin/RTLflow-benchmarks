@@ -5,7 +5,7 @@ MAKEFILE_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 #current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 base_dir   = $(abspath $(MAKEFILE_DIR))
 src_dir    = $(base_dir)/src/main
-gen_dir    = $(base_dir)/generated-src-rtlflow-bs$(BATCH)-vps$(VERILATOR_PARTITION_SIZE)
+gen_dir    = $(base_dir)/generated-src-rtlflow-vps$(VERILATOR_PARTITION_SIZE)-bs$(BATCH_SIZE)-c$(NUM_CYCLES)-s$(NUM_STIMULUS)-u$(UNIT_WEIGHT)-b$(BETA)
 v_dir      = $(base_dir)/generated-src
 
 #out_dir    = $(base_dir)/outputs-rtlflow
