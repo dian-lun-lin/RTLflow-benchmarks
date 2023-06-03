@@ -4440,7 +4440,7 @@ module VexRiscv (
         assert((! (((dBus_rsp_ready && memory_MEMORY_ENABLE) && memory_arbitration_isValid) && memory_arbitration_isStuck)))
       `else
         if(!(! (((dBus_rsp_ready && memory_MEMORY_ENABLE) && memory_arbitration_isValid) && memory_arbitration_isStuck))) begin
-          $display("FAILURE DBusSimplePlugin doesn't allow memory stage stall when read happend");
+          //$display("FAILURE DBusSimplePlugin doesn't allow memory stage stall when read happend");
           $finish;
         end
       `endif
@@ -4450,7 +4450,7 @@ module VexRiscv (
         assert((! (((writeBack_arbitration_isValid && writeBack_MEMORY_ENABLE) && (! writeBack_MEMORY_STORE)) && writeBack_arbitration_isStuck)))
       `else
         if(!(! (((writeBack_arbitration_isValid && writeBack_MEMORY_ENABLE) && (! writeBack_MEMORY_STORE)) && writeBack_arbitration_isStuck))) begin
-          $display("FAILURE DBusSimplePlugin doesn't allow writeback stage stall when read happend");
+          //$display("FAILURE DBusSimplePlugin doesn't allow writeback stage stall when read happend");
           $finish;
         end
       `endif

@@ -5,9 +5,12 @@ all: tb
 #============================================================
 # Main
 #============================================================
-tb: verilator
-	nvcc -arch=sm_75 -std=c++17 -O2 -DBATCH=$(BATCH) -I$(VERILATOR_ROOT)/include/ -Xcompiler -fopenmp, --extended-lambda -DVL_THREADED=2 -I ../../taskflow/ -I$(VERILATOR_ROOT)/include/vltstd -Iobj_dir_rtlflow \
+tb: 
+	nvcc -arch=sm_75 -std=c++20 -O2 -DBATCH=$(BATCH) -I$(VERILATOR_ROOT)/include/ -Xcompiler -fopenmp, --extended-lambda -lpthread -lcurand -DVL_THREADED=2  -I$(VERILATOR_ROOT)/include/vltstd -Iobj_dir_rtlflow \
 			$(VERILATOR_ROOT)/include/rf_verilated.cu \
+			-I $(VERILATOR_ROOT)/include/ \
+			-I $(VERILATOR_ROOT)/include/taskflow \
+			-I $(VERILATOR_ROOT)/include/taro \
       ./obj_dir_rtlflow/VExampleTop__ALL.a \
 			 main.cu \
 			 -lgomp \
@@ -16,7 +19,7 @@ tb: verilator
 .PHONY: rtlflow
 rtlflow: 
 	rm -fr obj_dir_rtlflow
-	rtlflow --stats --threads 2 -CFLAGS "-O2 -DBATCH=$(BATCH)" --Mdir obj_dir_rtlflow -Wno-fatal -cc  $(SRC_FILE)
+	rtlflow --stats --threads 2 -CFLAGS "-O2 -DBATCH=$(BATCH)" --Mdir obj_dir_rtlflow -Wno-fatal -cc  $(SRC_FILE) -weight_table $(WTB)
 	cd obj_dir_rtlflow && make -f VExampleTop.mk
 	cp ../spinal/*.bin .
 
