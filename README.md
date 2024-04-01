@@ -1,7 +1,6 @@
 # RTLflow-benchmarks
 Benchmarks for RTLflow
 
-# For the newest verison of RTLflow, please switch to pipeline branch
 
 # Build RTLflow
 You will need to build [RTLflow](https://github.com/dian-lun-lin/verilator) first.
